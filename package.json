@@ -1,0 +1,23 @@
+{
+  "name": "conditional-tokens-bot",
+  "version": "1.0.0",
+  "description": "Omen conditional tokens bot",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gnosis/conditional-tokens-bot.git"
+  },
+  "author": "",
+  "license": "LGPL-3.0",
+  "bugs": {
+    "url": "https://github.com/gnosis/conditional-tokens-bot/issues"
+  },
+  "homepage": "https://github.com/gnosis/conditional-tokens-bot#readme",
+  "dependencies": {
+    "@slack/webhook": "^5.0.3",
+    "dotenv": "^8.2.0"
+  }
+}
