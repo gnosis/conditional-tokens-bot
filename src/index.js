@@ -96,7 +96,7 @@ myContract.events.ConditionResolution({
             type: 'section',
             text: {
                 type: 'mrkdwn',
-                text: `*oracle*: <https://${urlExplorer}/address/<https://${urlExplorer}/address/${event.returnValues.oracle}|${event.returnValues.oracle}>|<https://${urlExplorer}/address/${event.returnValues.oracle}|${event.returnValues.oracle}>>`,
+                text: `*oracle*: <https://${urlExplorer}/address/${event.returnValues.oracle}|${event.returnValues.oracle}>`,
                 }
             },
             {
@@ -161,7 +161,7 @@ myContract.events.PositionSplit({
             type: 'section',
             text: {
                 type: 'mrkdwn',
-                text: `*collateralToken*: <https://${urlExplorer}/address/<https://${urlExplorer}/address/${event.returnValues.collateralToken}|${event.returnValues.collateralToken}>|<https://${urlExplorer}/address/${event.returnValues.collateralToken}|${event.returnValues.collateralToken}>>`,
+                text: `*collateralToken*: <https://${urlExplorer}/address/${event.returnValues.collateralToken}|${event.returnValues.collateralToken}>`,
                 }
             },
             {
