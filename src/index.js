@@ -1,7 +1,14 @@
 require('dotenv').config()
-
+const express = require("express");
 const { myContract } = require('./services/contractEvents');
 const { IncomingWebhook } = require('@slack/webhook');
+
+const app = express();
+const port = 3000;
+
+app.use(express.json());
+
+app.listen(port, () => console.log(`Bot listening on port ${port}!`));
 
 // Read a url from the environment variables
 const url = process.env.SLACK_WEBHOOK_URL;
@@ -9,17 +16,20 @@ const networkName = process.env.NETWORK_NAME;
 const urlExplorer = networkName == "rinkeby" ? 'rinkeby.etherscan.io' : 'etherscan.io';
 
 // Initialize webhook for Slack
-const webhook = new IncomingWebhook(url);
+const webhook = url ? new IncomingWebhook(url) : undefined;
+if (webhook === undefined) {
+    console.log('SLACK_WEBHOOK_URL not defined!!');
+}
 
 // watching create condition
 myContract.events.ConditionPreparation({
     filter: {}, 
     fromBlock: process.env.START_BLOCK
 }, function(error, event){ 
-    console.log(event); 
+    console.log(event);
     // Send the notification
     (async () => {
-        await webhook.send({
+        webhook && await webhook.send({
         blocks: [
             {
             type: 'section',
@@ -76,7 +86,7 @@ myContract.events.ConditionResolution({
     console.log(event); 
     // Send the notification
     (async () => {
-        await webhook.send({
+        webhook && await webhook.send({
         blocks: [
             {
             type: 'section',
@@ -141,7 +151,7 @@ myContract.events.PositionSplit({
     console.log(event); 
     // Send the notification
     (async () => {
-        await webhook.send({
+        webhook && await webhook.send({
         blocks: [
             {
             type: 'section',
@@ -213,7 +223,7 @@ myContract.events.PositionsMerge({
     console.log(event); 
     // Send the notification
     (async () => {
-        await webhook.send({
+        webhook && await webhook.send({
         blocks: [
             {
             type: 'section',
@@ -285,7 +295,7 @@ myContract.events.PayoutRedemption({
     console.log(event); 
     // Send the notification
     (async () => {
-        await webhook.send({
+        webhook && await webhook.send({
         blocks: [
             {
             type: 'section',
