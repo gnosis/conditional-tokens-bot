@@ -3,9 +3,6 @@ sudo: required
 language: node_js
 node_js:
   - stable
-env:
-  global:
-    - DOCKERHUB_PROJECT=ca-bot
 services:
   - docker
 before_install:
