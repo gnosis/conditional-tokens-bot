@@ -8,6 +8,9 @@ const port = 3000;
 
 app.use(express.json());
 
+app.get('/', (req, res) => {
+    res.status(200).send('CT bot is running!')
+})
 app.listen(port, () => console.log(`Bot listening on port ${port}!`));
 
 // Read a url from the environment variables
