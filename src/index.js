@@ -1,7 +1,10 @@
 require('dotenv').config()
+const _ = require("lodash/collection");
 const express = require("express");
 const { myContract } = require('./services/contractEvents');
 const { IncomingWebhook } = require('@slack/webhook');
+const getQuestion = require('./services/getQuestion');
+const getCondition = require('./services/getCondition');
 
 const app = express();
 const port = 3000;
@@ -29,46 +32,79 @@ myContract.events.ConditionPreparation({
     filter: {}, 
     fromBlock: process.env.START_BLOCK
 }, function(error, event){ 
-    console.log(event);
+    // console.log(event);
     // Send the notification
     (async () => {
-        webhook && await webhook.send({
-        blocks: [
-            {
+        const blocks = new Array({
             type: 'section',
             text: {
                 type: 'mrkdwn',
-                text: `-> *New \`${event.event}\` on \`${networkName}\` at block <https://${urlExplorer}/block/${event.blockNumber}|${event.blockNumber}>*`,
-                }
-            },
-            {
-            type: 'section',
-            text: {
-                type: 'mrkdwn',
-                text: `*conditionId*: ${event.returnValues.conditionId}`,
-                }
-            },
-            {
-            type: 'section',
-            text: {
-                type: 'mrkdwn',
-                text: `*oracle*: <https://${urlExplorer}/address/${event.returnValues.oracle}|${event.returnValues.oracle}>`,
-                }
-            },
-            {
-            type: 'section',
-            text: {
-                type: 'mrkdwn',
-                text: `*questionId*: ${event.returnValues.questionId}`,
-                }
-            },
-            {
-            type: 'section',
-            text: {
-                type: 'mrkdwn',
-                text: `*outcomeSlotCount*: ${event.returnValues.outcomeSlotCount}`,
-                }
-            }],
+                text: '*New market created!* :tada:',
+            }
+        });
+        getCondition(event.returnValues.conditionId).then((conditions) => {
+            _.forEach(conditions, condition => {
+                getQuestion(event.returnValues.questionId).then((questions) => {
+                    if (questions.length == 0) {
+                        console.error(`ERROR: Question for hex "${event.returnValues.questionId}" not found on contition ID ${event.returnValues.conditionId}`);
+                        blocks.push({
+                            type: 'section',
+                            text: {
+                                type: 'mrkdwn',
+                                text: `Question for hex \`${event.returnValues.questionId}\' not found on contition ID \`${event.returnValues.conditionId}\``,
+                            }
+                        });
+                    } else {
+                        _.forEach(questions, question => {
+                            blocks.push({ 
+                                type: 'section', text: { type: 'mrkdwn', text: `*Title:* ${question.title}`, } 
+                            });
+                            blocks.push({ type: 'section', text: { type: 'mrkdwn', text: `*Outcomes:*`, } });
+                            _.forEach(question.outcomes, outcome => {
+                                blocks.push({
+                                    type: 'section',
+                                    text: {
+                                        type: 'mrkdwn',
+                                        text: `- ${outcome} - {outcome odds}`,
+                                    }
+                                });
+                            });
+                        });
+                    }
+                    blocks.push({
+                        type: 'section',
+                        text: {
+                            type: 'mrkdwn',
+                            text: `*Collateral*: ${event.returnValues.oracle}`,
+                        }
+                    },
+                    {
+                        type: 'section',
+                        text: {
+                            type: 'mrkdwn',
+                            text: `*Liquidity*: {amount} {tokenSymbol}`,
+                        }
+                    },
+                    {
+                        type: 'section',
+                        text: {
+                            type: 'mrkdwn',
+                            text: `*Omen URL*: {omenUrl}`,
+                        }
+                    },
+                    {
+                        type: 'section',
+                        text: {
+                            type: 'mrkdwn',
+                            text: `*Created by*: ${condition.creator}`,
+                        }
+                    }
+                    );
+                    webhook && webhook.send({
+                        blocks: blocks
+                    });
+                });
+            });
         });
     })();
 })
