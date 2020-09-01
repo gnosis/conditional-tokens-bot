@@ -1,8 +1,7 @@
 const fetch = require('node-fetch');
-const separator = Buffer.from('e2909f', 'hex').toString('utf-8');
 const _ = require("lodash/collection");
 
-module.exports = function (questionId) {
+module.exports.getQuestion = (questionId) => {
   const jsonQuery = { query: `{  questions(  where: {    id: \"${questionId}\"  }  ) { id templateId outcomes title category }}` }
 
   const promise = fetch(process.env.THE_GRAPH_GET_OMEN_QUESTIONS, {

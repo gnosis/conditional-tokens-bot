@@ -1,13 +1,17 @@
 require('dotenv').config()
+const Web3 = require('web3');
 const _ = require("lodash/collection");
 const express = require("express");
 const { IncomingWebhook } = require('@slack/webhook');
-const { myContract } = require('./services/contractEvents');
-const getQuestion = require('./services/getQuestion');
-const getCondition = require('./services/getCondition');
+const { getconditionalTokensContract } = require('./services/contractEvents');
+const { getTokenSymbol, getTokenDecimals } = require('./services/contractERC20');
+const { getQuestion } = require('./services/getQuestion');
+const { getCondition } = require('./services/getCondition');
 
 const app = express();
 const port = 3000;
+const web3 = new Web3(new Web3.providers.WebsocketProvider(process.env.ETH_NODE));
+const conditionalTokenContract = getconditionalTokensContract(web3);
 
 app.use(express.json());
 
@@ -28,7 +32,7 @@ if (webhook === undefined) {
 }
 
 // watching create condition
-myContract.events.ConditionPreparation({
+conditionalTokenContract.events.ConditionPreparation({
     filter: {}, 
     fromBlock: process.env.START_BLOCK
 }, function(error, event){ 
@@ -43,7 +47,7 @@ myContract.events.ConditionPreparation({
 .on('error', console.error);
 
 // watching condition resolution
-myContract.events.ConditionResolution({
+conditionalTokenContract.events.ConditionResolution({
     filter: {}, 
     fromBlock: process.env.START_BLOCK
 }, function(error, event){ 
@@ -108,7 +112,7 @@ myContract.events.ConditionResolution({
 /**
  * Split Positions
  */
-myContract.events.PositionSplit({
+conditionalTokenContract.events.PositionSplit({
     filter: {}, 
     fromBlock: process.env.START_BLOCK
 }, function(error, event){ 
@@ -123,7 +127,7 @@ myContract.events.PositionSplit({
             }
         });
         getCondition(event.returnValues.conditionId).then((conditions) => {
-            conditions.map(condition => {
+            _.forEach(conditions, condition => {
                 getQuestion(condition.questionId).then((questions) => {
                     if (questions.length == 0) {
                         console.error(`ERROR: Question for hex "${event.returnValues.questionId}" not found on contition ID ${event.returnValues.conditionId}`);
@@ -135,7 +139,7 @@ myContract.events.PositionSplit({
                             }
                         });
                     } else {
-                        questions.map(question => {
+                        _.forEach(questions, question => {
                             blocks.push({ 
                                 type: 'section', text: { type: 'mrkdwn', text: `*Title:* ${question.title}`, } 
                             });
@@ -151,37 +155,40 @@ myContract.events.PositionSplit({
                             });
                         });
                     }
-                    blocks.push({
-                        type: 'section',
-                        text: {
-                            type: 'mrkdwn',
-                            text: `*Collateral*: <https://${urlExplorer}/token/${event.returnValues.collateralToken}|${event.returnValues.collateralToken}>`,
-                        }
-                    },
-                    {
-                        type: 'section',
-                        text: {
-                            type: 'mrkdwn',
-                            text: `*Liquidity*: ${event.returnValues.amount} {tokenSymbol}`,
-                        }
-                    },
-                    {
-                        type: 'section',
-                        text: {
-                            type: 'mrkdwn',
-                            text: `*Omen URL*: {omenUrl}`,
-                        }
-                    },
-                    {
-                        type: 'section',
-                        text: {
-                            type: 'mrkdwn',
-                            text: `*Created by*: <https://${urlExplorer}/address/${event.returnValues.stakeholder}|${event.returnValues.stakeholder}>`,
-                        }
-                    }
-                    );
-                    webhook && webhook.send({
-                        blocks: blocks
+                    getTokenSymbol(web3, event.returnValues.collateralToken).then(tokenSymbol => {
+                        getTokenDecimals(web3, event.returnValues.collateralToken).then(decimals => {
+                            blocks.push({
+                                type: 'section',
+                                text: {
+                                    type: 'mrkdwn',
+                                    text: `*Collateral*: <https://${urlExplorer}/token/${event.returnValues.collateralToken}|${event.returnValues.collateralToken}>`,
+                                }
+                            },
+                            {
+                                type: 'section',
+                                text: {
+                                    type: 'mrkdwn',
+                                    text: `*Liquidity*: ${(parseFloat(event.returnValues.amount) / 10**decimals ).toFixed(2)} ${tokenSymbol}`,
+                                }
+                            },
+                            {
+                                type: 'section',
+                                text: {
+                                    type: 'mrkdwn',
+                                    text: `*Omen URL*: {omenUrl}`,
+                                }
+                            },
+                            {
+                                type: 'section',
+                                text: {
+                                    type: 'mrkdwn',
+                                    text: `*Created by*: <https://${urlExplorer}/address/${event.returnValues.stakeholder}|${event.returnValues.stakeholder}>`,
+                                }
+                            });
+                            webhook && webhook.send({
+                                blocks: blocks
+                            });
+                        });
                     });
                 });
             });
@@ -199,7 +206,7 @@ myContract.events.PositionSplit({
 /**
  * Merge Positions
  */
-myContract.events.PositionsMerge({
+conditionalTokenContract.events.PositionsMerge({
     filter: {}, 
     fromBlock: process.env.START_BLOCK
 }, function(error, event){ 
@@ -271,7 +278,7 @@ myContract.events.PositionsMerge({
 /**
  * Payout Redemption
  */
-myContract.events.PayoutRedemption({
+conditionalTokenContract.events.PayoutRedemption({
     filter: {}, 
     fromBlock: process.env.START_BLOCK
 }, function(error, event){ 

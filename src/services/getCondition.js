@@ -1,7 +1,7 @@
 const fetch = require('node-fetch');
 const _ = require("lodash/collection");
 
-module.exports = function (conditionId) {
+module.exports.getCondition = (conditionId) => {
   const jsonQuery = { query: `{  conditions(  where: {    id: \"${conditionId}\"  }  ) { id creator oracle questionId }}` }
 
   const promise = fetch(process.env.THE_GRAPH_GET_OMEN_CONDITIONS, {
