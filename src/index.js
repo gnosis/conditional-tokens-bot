@@ -60,6 +60,13 @@ conditionalTokenContract.events.ConditionResolution({
             type: 'section',
             text: {
                 type: 'mrkdwn',
+                text: `----`,
+                }
+            },
+            {
+            type: 'section',
+            text: {
+                type: 'mrkdwn',
                 text: `-> *New \`${event.event}\` at block <https://${urlExplorer}/block/${event.blockNumber}|${event.blockNumber}>*`,
                 }
             },
@@ -97,6 +104,13 @@ conditionalTokenContract.events.ConditionResolution({
                 type: 'mrkdwn',
                 text: `*payoutNumerators*: ${event.returnValues.payoutNumerators}`,
                 }
+            },
+            {
+            type: 'section',
+            text: {
+                type: 'mrkdwn',
+                text: `----`,
+                }
             }],
         });
     })();
@@ -120,6 +134,13 @@ conditionalTokenContract.events.PositionSplit({
     // Send the notification
     (async () => {
         const blocks = new Array({
+            type: 'section',
+            text: {
+                type: 'mrkdwn',
+                text: `----`,
+                }
+            },
+            {
             type: 'section',
             text: {
                 type: 'mrkdwn',
@@ -184,6 +205,13 @@ conditionalTokenContract.events.PositionSplit({
                                     type: 'mrkdwn',
                                     text: `*Created by*: <https://${urlExplorer}/address/${event.returnValues.stakeholder}|${event.returnValues.stakeholder}>`,
                                 }
+                            },
+                            {
+                            type: 'section',
+                            text: {
+                                type: 'mrkdwn',
+                                text: `----`,
+                                }
                             });
                             webhook && webhook.send({
                                 blocks: blocks
@@ -215,6 +243,13 @@ conditionalTokenContract.events.PositionsMerge({
     (async () => {
         webhook && await webhook.send({
         blocks: [
+            {
+            type: 'section',
+            text: {
+                type: 'mrkdwn',
+                text: `----`,
+                }
+            },
             {
             type: 'section',
             text: {
@@ -263,6 +298,13 @@ conditionalTokenContract.events.PositionsMerge({
                 type: 'mrkdwn',
                 text: `*amount*: ${event.returnValues.amount}`,
                 }
+            },
+            {
+            type: 'section',
+            text: {
+                type: 'mrkdwn',
+                text: `----`,
+                }
             }],
         });
     })();
@@ -287,6 +329,13 @@ conditionalTokenContract.events.PayoutRedemption({
     (async () => {
         webhook && await webhook.send({
         blocks: [
+            {
+            type: 'section',
+            text: {
+                type: 'mrkdwn',
+                text: `----`,
+                }
+            },
             {
             type: 'section',
             text: {
@@ -334,6 +383,13 @@ conditionalTokenContract.events.PayoutRedemption({
             text: {
                 type: 'mrkdwn',
                 text: `*payout*: ${event.returnValues.payout}`,
+                }
+            },
+            {
+            type: 'section',
+            text: {
+                type: 'mrkdwn',
+                text: `----`,
                 }
             }],
         });
