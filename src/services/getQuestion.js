@@ -2,7 +2,7 @@ const fetch = require('node-fetch');
 const _ = require("lodash/collection");
 
 module.exports.getQuestion = (questionId) => {
-  const jsonQuery = { query: `{  questions(  where: {    id: \"${questionId}\"  }  ) { id templateId outcomes title category }}` }
+  const jsonQuery = { query: `{  questions(  where: {    id: \"${questionId}\"  }  ) { id templateId indexedFixedProductMarketMakers { id outcomeTokenMarginalPrices } outcomes title category }}` }
 
   const promise = fetch(process.env.THE_GRAPH_GET_OMEN_QUESTIONS, {
     headers: { 'Content-Type': 'application/json' },
@@ -18,6 +18,8 @@ module.exports.getQuestion = (questionId) => {
         outcomes: question.outcomes,
         category: question.category,
         language: question.language,
+        indexedFixedProductMarketMakers: question.indexedFixedProductMarketMakers[0].id,
+        outcomeTokenMarginalPrices: question.indexedFixedProductMarketMakers[0].outcomeTokenMarginalPrices,
       })
     });
     return questions;

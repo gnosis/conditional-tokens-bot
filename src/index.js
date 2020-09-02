@@ -31,83 +31,83 @@ if (webhook === undefined) {
     console.log('SLACK_WEBHOOK_URL not defined!!');
 }
 
-// watching create condition
-conditionalTokenContract.events.ConditionPreparation({
-    filter: {}, 
-    fromBlock: process.env.START_BLOCK
-}, function(error, event){ 
-    console.log(event);
-})
-.on('data', function(event){
-    console.log(event); // same results as the optional callback above
-})
-.on('changed', function(event){
-    // remove event from local database
-})
-.on('error', console.error);
+// // watching create condition
+// conditionalTokenContract.events.ConditionPreparation({
+//     filter: {}, 
+//     fromBlock: process.env.START_BLOCK
+// }, function(error, event){ 
+//     console.log(event);
+// })
+// .on('data', function(event){
+//     console.log(event); // same results as the optional callback above
+// })
+// .on('changed', function(event){
+//     // remove event from local database
+// })
+// .on('error', console.error);
 
-// watching condition resolution
-conditionalTokenContract.events.ConditionResolution({
-    filter: {}, 
-    fromBlock: process.env.START_BLOCK
-}, function(error, event){ 
-    console.log(event); 
-    // Send the notification
-    (async () => {
-        webhook && await webhook.send({
-        blocks: [
-            {
-            type: 'section',
-            text: {
-                type: 'mrkdwn',
-                text: `-> *New \`${event.event}\` at block <https://${urlExplorer}/block/${event.blockNumber}|${event.blockNumber}>*`,
-                }
-            },
-            {
-            type: 'section',
-            text: {
-                type: 'mrkdwn',
-                text: `*conditionId*: ${event.returnValues.conditionId}`,
-                }
-            },
-            {
-            type: 'section',
-            text: {
-                type: 'mrkdwn',
-                text: `*oracle*: <https://${urlExplorer}/address/${event.returnValues.oracle}|${event.returnValues.oracle}>`,
-                }
-            },
-            {
-            type: 'section',
-            text: {
-                type: 'mrkdwn',
-                text: `*questionId*: ${event.returnValues.questionId}`,
-                }
-            },
-            {
-            type: 'section',
-            text: {
-                type: 'mrkdwn',
-                text: `*outcomeSlotCount*: ${event.returnValues.outcomeSlotCount}`,
-                }
-            },
-            {
-            type: 'section',
-            text: {
-                type: 'mrkdwn',
-                text: `*payoutNumerators*: ${event.returnValues.payoutNumerators}`,
-                }
-            }],
-        });
-    })();
-})
-.on('data', function(event){
-    console.log(event); // same results as the optional callback above
-})
-.on('changed', function(event){
-    // remove event from local database
-})
-.on('error', console.error);
+// // watching condition resolution
+// conditionalTokenContract.events.ConditionResolution({
+//     filter: {}, 
+//     fromBlock: process.env.START_BLOCK
+// }, function(error, event){ 
+//     console.log(event); 
+//     // Send the notification
+//     (async () => {
+//         webhook && await webhook.send({
+//         blocks: [
+//             {
+//             type: 'section',
+//             text: {
+//                 type: 'mrkdwn',
+//                 text: `-> *New \`${event.event}\` at block <https://${urlExplorer}/block/${event.blockNumber}|${event.blockNumber}>*`,
+//                 }
+//             },
+//             {
+//             type: 'section',
+//             text: {
+//                 type: 'mrkdwn',
+//                 text: `*conditionId*: ${event.returnValues.conditionId}`,
+//                 }
+//             },
+//             {
+//             type: 'section',
+//             text: {
+//                 type: 'mrkdwn',
+//                 text: `*oracle*: <https://${urlExplorer}/address/${event.returnValues.oracle}|${event.returnValues.oracle}>`,
+//                 }
+//             },
+//             {
+//             type: 'section',
+//             text: {
+//                 type: 'mrkdwn',
+//                 text: `*questionId*: ${event.returnValues.questionId}`,
+//                 }
+//             },
+//             {
+//             type: 'section',
+//             text: {
+//                 type: 'mrkdwn',
+//                 text: `*outcomeSlotCount*: ${event.returnValues.outcomeSlotCount}`,
+//                 }
+//             },
+//             {
+//             type: 'section',
+//             text: {
+//                 type: 'mrkdwn',
+//                 text: `*payoutNumerators*: ${event.returnValues.payoutNumerators}`,
+//                 }
+//             }],
+//         });
+//     })();
+// })
+// .on('data', function(event){
+//     console.log(event); // same results as the optional callback above
+// })
+// .on('changed', function(event){
+//     // remove event from local database
+// })
+// .on('error', console.error);
 
 /**
  * Split Positions
@@ -144,12 +144,12 @@ conditionalTokenContract.events.PositionSplit({
                                 type: 'section', text: { type: 'mrkdwn', text: `*Title:* ${question.title}`, } 
                             });
                             blocks.push({ type: 'section', text: { type: 'mrkdwn', text: `*Outcomes:*`, } });
-                            _.forEach(question.outcomes, outcome => {
+                            _.forEach(question.outcomes, (outcome, i) => {
                                 blocks.push({
                                     type: 'section',
                                     text: {
                                         type: 'mrkdwn',
-                                        text: `- ${outcome} - {outcome odds}`,
+                                        text: `- ${outcome} - ${(parseFloat(question.outcomeTokenMarginalPrices[i]) * 100 ).toFixed(2)}%`,
                                     }
                                 });
                             });
@@ -175,7 +175,7 @@ conditionalTokenContract.events.PositionSplit({
                                 type: 'section',
                                 text: {
                                     type: 'mrkdwn',
-                                    text: `*Omen URL*: {omenUrl}`,
+                                    text: `*Omen URL*: <https://omen.eth.link/#/${questions[0].indexedFixedProductMarketMakers}|https://omen.eth.link/#/${questions[0].indexedFixedProductMarketMakers}>`,
                                 }
                             },
                             {
@@ -203,146 +203,146 @@ conditionalTokenContract.events.PositionSplit({
 })
 .on('error', console.error);
 
-/**
- * Merge Positions
- */
-conditionalTokenContract.events.PositionsMerge({
-    filter: {}, 
-    fromBlock: process.env.START_BLOCK
-}, function(error, event){ 
-    console.log(event); 
-    // Send the notification
-    (async () => {
-        webhook && await webhook.send({
-        blocks: [
-            {
-            type: 'section',
-            text: {
-                type: 'mrkdwn',
-                text: `-> *New \`${event.event}\` at block <https://${urlExplorer}/block/${event.blockNumber}|${event.blockNumber}>*`,
-                }
-            },
-            {
-            type: 'section',
-            text: {
-                type: 'mrkdwn',
-                text: `*stakeholder*: ${event.returnValues.stakeholder}`,
-                }
-            },
-            {
-            type: 'section',
-            text: {
-                type: 'mrkdwn',
-                text: `*collateralToken*: <https://${urlExplorer}/address/${event.returnValues.collateralToken}|${event.returnValues.collateralToken}>`,
-                }
-            },
-            {
-            type: 'section',
-            text: {
-                type: 'mrkdwn',
-                text: `*parentCollectionId*: ${event.returnValues.parentCollectionId}`,
-                }
-            },
-            {
-            type: 'section',
-            text: {
-                type: 'mrkdwn',
-                text: `*conditionId*: ${event.returnValues.conditionId}`,
-                }
-            },
-            {
-            type: 'section',
-            text: {
-                type: 'mrkdwn',
-                text: `*partition*: ${event.returnValues.partition}`,
-                }
-            },
-            {
-            type: 'section',
-            text: {
-                type: 'mrkdwn',
-                text: `*amount*: ${event.returnValues.amount}`,
-                }
-            }],
-        });
-    })();
-})
-.on('data', function(event){
-    console.log(event); // same results as the optional callback above
-})
-.on('changed', function(event){
-    // remove event from local database
-})
-.on('error', console.error);
+// /**
+//  * Merge Positions
+//  */
+// conditionalTokenContract.events.PositionsMerge({
+//     filter: {}, 
+//     fromBlock: process.env.START_BLOCK
+// }, function(error, event){ 
+//     console.log(event); 
+//     // Send the notification
+//     (async () => {
+//         webhook && await webhook.send({
+//         blocks: [
+//             {
+//             type: 'section',
+//             text: {
+//                 type: 'mrkdwn',
+//                 text: `-> *New \`${event.event}\` at block <https://${urlExplorer}/block/${event.blockNumber}|${event.blockNumber}>*`,
+//                 }
+//             },
+//             {
+//             type: 'section',
+//             text: {
+//                 type: 'mrkdwn',
+//                 text: `*stakeholder*: ${event.returnValues.stakeholder}`,
+//                 }
+//             },
+//             {
+//             type: 'section',
+//             text: {
+//                 type: 'mrkdwn',
+//                 text: `*collateralToken*: <https://${urlExplorer}/address/${event.returnValues.collateralToken}|${event.returnValues.collateralToken}>`,
+//                 }
+//             },
+//             {
+//             type: 'section',
+//             text: {
+//                 type: 'mrkdwn',
+//                 text: `*parentCollectionId*: ${event.returnValues.parentCollectionId}`,
+//                 }
+//             },
+//             {
+//             type: 'section',
+//             text: {
+//                 type: 'mrkdwn',
+//                 text: `*conditionId*: ${event.returnValues.conditionId}`,
+//                 }
+//             },
+//             {
+//             type: 'section',
+//             text: {
+//                 type: 'mrkdwn',
+//                 text: `*partition*: ${event.returnValues.partition}`,
+//                 }
+//             },
+//             {
+//             type: 'section',
+//             text: {
+//                 type: 'mrkdwn',
+//                 text: `*amount*: ${event.returnValues.amount}`,
+//                 }
+//             }],
+//         });
+//     })();
+// })
+// .on('data', function(event){
+//     console.log(event); // same results as the optional callback above
+// })
+// .on('changed', function(event){
+//     // remove event from local database
+// })
+// .on('error', console.error);
 
-/**
- * Payout Redemption
- */
-conditionalTokenContract.events.PayoutRedemption({
-    filter: {}, 
-    fromBlock: process.env.START_BLOCK
-}, function(error, event){ 
-    console.log(event); 
-    // Send the notification
-    (async () => {
-        webhook && await webhook.send({
-        blocks: [
-            {
-            type: 'section',
-            text: {
-                type: 'mrkdwn',
-                text: `-> *New \`${event.event}\` at block <https://${urlExplorer}/block/${event.blockNumber}|${event.blockNumber}>*`,
-                }
-            },
-            {
-            type: 'section',
-            text: {
-                type: 'mrkdwn',
-                text: `*redeemer*: ${event.returnValues.redeemer}`,
-                }
-            },
-            {
-            type: 'section',
-            text: {
-                type: 'mrkdwn',
-                text: `*collateralToken*: <https://${urlExplorer}/address/${event.returnValues.collateralToken}|${event.returnValues.collateralToken}>`,
-                }
-            },
-            {
-            type: 'section',
-            text: {
-                type: 'mrkdwn',
-                text: `*parentCollectionId*: ${event.returnValues.parentCollectionId}`,
-                }
-            },
-            {
-            type: 'section',
-            text: {
-                type: 'mrkdwn',
-                text: `*conditionId*: ${event.returnValues.conditionId}`,
-                }
-            },
-            {
-            type: 'section',
-            text: {
-                type: 'mrkdwn',
-                text: `*indexSets*: ${event.returnValues.indexSets}`,
-                }
-            },
-            {
-            type: 'section',
-            text: {
-                type: 'mrkdwn',
-                text: `*payout*: ${event.returnValues.payout}`,
-                }
-            }],
-        });
-    })();
-})
-.on('data', function(event){
-    console.log(event); // same results as the optional callback above
-})
-.on('changed', function(event){
-    // remove event from local database
-})
-.on('error', console.error);
+// /**
+//  * Payout Redemption
+//  */
+// conditionalTokenContract.events.PayoutRedemption({
+//     filter: {}, 
+//     fromBlock: process.env.START_BLOCK
+// }, function(error, event){ 
+//     console.log(event); 
+//     // Send the notification
+//     (async () => {
+//         webhook && await webhook.send({
+//         blocks: [
+//             {
+//             type: 'section',
+//             text: {
+//                 type: 'mrkdwn',
+//                 text: `-> *New \`${event.event}\` at block <https://${urlExplorer}/block/${event.blockNumber}|${event.blockNumber}>*`,
+//                 }
+//             },
+//             {
+//             type: 'section',
+//             text: {
+//                 type: 'mrkdwn',
+//                 text: `*redeemer*: ${event.returnValues.redeemer}`,
+//                 }
+//             },
+//             {
+//             type: 'section',
+//             text: {
+//                 type: 'mrkdwn',
+//                 text: `*collateralToken*: <https://${urlExplorer}/address/${event.returnValues.collateralToken}|${event.returnValues.collateralToken}>`,
+//                 }
+//             },
+//             {
+//             type: 'section',
+//             text: {
+//                 type: 'mrkdwn',
+//                 text: `*parentCollectionId*: ${event.returnValues.parentCollectionId}`,
+//                 }
+//             },
+//             {
+//             type: 'section',
+//             text: {
+//                 type: 'mrkdwn',
+//                 text: `*conditionId*: ${event.returnValues.conditionId}`,
+//                 }
+//             },
+//             {
+//             type: 'section',
+//             text: {
+//                 type: 'mrkdwn',
+//                 text: `*indexSets*: ${event.returnValues.indexSets}`,
+//                 }
+//             },
+//             {
+//             type: 'section',
+//             text: {
+//                 type: 'mrkdwn',
+//                 text: `*payout*: ${event.returnValues.payout}`,
+//                 }
+//             }],
+//         });
+//     })();
+// })
+// .on('data', function(event){
+//     console.log(event); // same results as the optional callback above
+// })
+// .on('changed', function(event){
+//     // remove event from local database
+// })
+// .on('error', console.error);

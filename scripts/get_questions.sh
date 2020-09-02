@@ -18,8 +18,10 @@ HASH_ID=`curl -s 'https://api.thegraph.com/subgraphs/name/cag/hg' \
   echo "questionID: $HASH_ID";
   json=`curl -s 'https://api.thegraph.com/subgraphs/name/protofire/omen' \
     -H 'content-type: application/json' \
-    -d '{"query":"{  questions(  where: {    id: \"'${HASH_ID}'\"  }  ) {    id    templateId    data    title  }}"}'`    
+    -d '{"query":"{  questions(  where: {    id: \"'${HASH_ID}'\"  }  ) {    id    indexedFixedProductMarketMakers { id outcomeTokenMarginalPrices } templateId    data    title  }}"}'`    
   echo $json | jq '.data["questions"][].data'
+  echo $json | jq '.data["questions"][].indexedFixedProductMarketMakers[].id'
+  echo $json | jq '.data["questions"][].indexedFixedProductMarketMakers[].outcomeTokenMarginalPrices[]'
  fi
 
 fi
