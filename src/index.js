@@ -60,7 +60,7 @@ conditionalTokenContract.events.ConditionResolution({
             type: 'section',
             text: {
                 type: 'mrkdwn',
-                text: `----`,
+                text: `>----`,
                 }
             },
             {
@@ -109,7 +109,7 @@ conditionalTokenContract.events.ConditionResolution({
             type: 'section',
             text: {
                 type: 'mrkdwn',
-                text: `----`,
+                text: `>----`,
                 }
             }],
         });
@@ -137,14 +137,14 @@ conditionalTokenContract.events.PositionSplit({
             type: 'section',
             text: {
                 type: 'mrkdwn',
-                text: `----`,
+                text: `>----`,
                 }
             },
             {
             type: 'section',
             text: {
                 type: 'mrkdwn',
-                text: '*New market created!* :tada:',
+                text: '> *New market created!* :tada:',
             }
         });
         getCondition(event.returnValues.conditionId).then((conditions) => {
@@ -175,49 +175,49 @@ conditionalTokenContract.events.PositionSplit({
                                 });
                             });
                         });
-                    }
-                    getTokenSymbol(web3, event.returnValues.collateralToken).then(tokenSymbol => {
-                        getTokenDecimals(web3, event.returnValues.collateralToken).then(decimals => {
-                            blocks.push({
+                        getTokenSymbol(web3, event.returnValues.collateralToken).then(tokenSymbol => {
+                            getTokenDecimals(web3, event.returnValues.collateralToken).then(decimals => {
+                                blocks.push({
+                                    type: 'section',
+                                    text: {
+                                        type: 'mrkdwn',
+                                        text: `*Collateral*: <https://${urlExplorer}/token/${event.returnValues.collateralToken}|${event.returnValues.collateralToken}>`,
+                                    }
+                                },
+                                {
+                                    type: 'section',
+                                    text: {
+                                        type: 'mrkdwn',
+                                        text: `*Liquidity*: ${(parseFloat(event.returnValues.amount) / 10**decimals ).toFixed(2)} ${tokenSymbol}`,
+                                    }
+                                },
+                                {
+                                    type: 'section',
+                                    text: {
+                                        type: 'mrkdwn',
+                                        text: `*Omen URL*: <https://omen.eth.link/#/${questions[0].indexedFixedProductMarketMakers}|https://omen.eth.link/#/${questions[0].indexedFixedProductMarketMakers}>`,
+                                    }
+                                },
+                                {
+                                    type: 'section',
+                                    text: {
+                                        type: 'mrkdwn',
+                                        text: `*Created by*: <https://${urlExplorer}/address/${event.returnValues.stakeholder}|${event.returnValues.stakeholder}>`,
+                                    }
+                                },
+                                {
                                 type: 'section',
                                 text: {
                                     type: 'mrkdwn',
-                                    text: `*Collateral*: <https://${urlExplorer}/token/${event.returnValues.collateralToken}|${event.returnValues.collateralToken}>`,
-                                }
-                            },
-                            {
-                                type: 'section',
-                                text: {
-                                    type: 'mrkdwn',
-                                    text: `*Liquidity*: ${(parseFloat(event.returnValues.amount) / 10**decimals ).toFixed(2)} ${tokenSymbol}`,
-                                }
-                            },
-                            {
-                                type: 'section',
-                                text: {
-                                    type: 'mrkdwn',
-                                    text: `*Omen URL*: <https://omen.eth.link/#/${questions[0].indexedFixedProductMarketMakers}|https://omen.eth.link/#/${questions[0].indexedFixedProductMarketMakers}>`,
-                                }
-                            },
-                            {
-                                type: 'section',
-                                text: {
-                                    type: 'mrkdwn',
-                                    text: `*Created by*: <https://${urlExplorer}/address/${event.returnValues.stakeholder}|${event.returnValues.stakeholder}>`,
-                                }
-                            },
-                            {
-                            type: 'section',
-                            text: {
-                                type: 'mrkdwn',
-                                text: `----`,
-                                }
-                            });
-                            webhook && webhook.send({
-                                blocks: blocks
+                                    text: `<!here>`,
+                                    }
+                                });
+                                webhook && webhook.send({
+                                    blocks: blocks
+                                });
                             });
                         });
-                    });
+                    }
                 });
             });
         });
@@ -247,7 +247,7 @@ conditionalTokenContract.events.PositionsMerge({
             type: 'section',
             text: {
                 type: 'mrkdwn',
-                text: `----`,
+                text: `>----`,
                 }
             },
             {
@@ -303,7 +303,7 @@ conditionalTokenContract.events.PositionsMerge({
             type: 'section',
             text: {
                 type: 'mrkdwn',
-                text: `----`,
+                text: `>----`,
                 }
             }],
         });
@@ -333,7 +333,7 @@ conditionalTokenContract.events.PayoutRedemption({
             type: 'section',
             text: {
                 type: 'mrkdwn',
-                text: `----`,
+                text: `>----`,
                 }
             },
             {
@@ -389,7 +389,7 @@ conditionalTokenContract.events.PayoutRedemption({
             type: 'section',
             text: {
                 type: 'mrkdwn',
-                text: `----`,
+                text: `>----`,
                 }
             }],
         });
