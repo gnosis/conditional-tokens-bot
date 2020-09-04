@@ -8,6 +8,13 @@ module.exports.getTokenSymbol = (web3, tokenAddress) => {
         });
 }
 
+module.exports.getTokenName = (web3, tokenAddress) => {
+    return new web3.eth.Contract(contractAbi, tokenAddress).methods.name().
+        call().then(name => {
+            return name;
+        });
+}
+
 module.exports.getTokenDecimals = (web3, tokenAddress) => {
     return new web3.eth.Contract(contractAbi, tokenAddress).methods.decimals().
         call().then(decimals => {

@@ -17,7 +17,6 @@ module.exports.getQuestion = (questionId) => {
         title: question.title,
         outcomes: question.outcomes,
         category: question.category,
-        language: question.language,
         indexedFixedProductMarketMakers: question.indexedFixedProductMarketMakers[0].id,
         outcomeTokenMarginalPrices: question.indexedFixedProductMarketMakers[0].outcomeTokenMarginalPrices,
       })
