@@ -64,39 +64,41 @@ conditionalTokenContract.events.PositionSplit({
                         getTokenName(web3, event.returnValues.collateralToken).then(tokenName => {
                             getTokenSymbol(web3, event.returnValues.collateralToken).then(tokenSymbol => {
                                 getTokenDecimals(web3, event.returnValues.collateralToken).then(decimals => {
-                                    message.push(`> *Collateral*: <https://${urlExplorer}/token/${event.returnValues.collateralToken}|${tokenName}>`,
-                                        `> *Liquidity*: ${(parseFloat(event.returnValues.amount) / 10**decimals ).toFixed(2)} ${tokenSymbol}`,
-                                        `> *Omen URL*: <https://omen.eth.link/#/${questions[0].indexedFixedProductMarketMakers}|--&gt;>`,
-                                        `> *Created by*: <https://${urlExplorer}/address/${event.returnValues.stakeholder}|${event.returnValues.stakeholder}>`);
-                                    webhook && webhook.send({
-                                        blocks: [{
-                                            type: 'section',
-                                            text: {
-                                                type: 'mrkdwn',
-                                                text: '---'
+                                    web3.eth.getTransaction(event.transactionHash).then(transaction => {
+                                        message.push(`> *Collateral*: <https://${urlExplorer}/token/${event.returnValues.collateralToken}|${tokenName}>`,
+                                            `> *Liquidity*: ${(parseFloat(event.returnValues.amount) / 10**decimals ).toFixed(2)} ${tokenSymbol}`,
+                                            `> *Omen URL*: <https://omen.eth.link/#/${questions[0].indexedFixedProductMarketMakers}|--&gt;>`,
+                                            `> *Created by*: <https://${urlExplorer}/address/${transaction.from}|${transaction.from}>`);
+                                        webhook && webhook.send({
+                                            blocks: [{
+                                                type: 'section',
+                                                text: {
+                                                    type: 'mrkdwn',
+                                                    text: '---'
+                                                    }
+                                                },{
+                                                type: 'section',
+                                                text: {
+                                                    type: 'mrkdwn',
+                                                    text: message.join('\n')
+                                                    }
                                                 }
-                                            },{
-                                            type: 'section',
-                                            text: {
-                                                type: 'mrkdwn',
-                                                text: message.join('\n')
+                                                ,{
+                                                type: 'section',
+                                                text: {
+                                                    type: 'mrkdwn',
+                                                    text: `<!here>`,
+                                                    }
+                                                },
+                                                {
+                                                type: 'section',
+                                                text: {
+                                                    type: 'mrkdwn',
+                                                    text: '---'
+                                                    }
                                                 }
-                                            }
-                                            ,{
-                                            type: 'section',
-                                            text: {
-                                                type: 'mrkdwn',
-                                                text: `<!here>`,
-                                                }
-                                            },
-                                            {
-                                            type: 'section',
-                                            text: {
-                                                type: 'mrkdwn',
-                                                text: '---'
-                                                }
-                                            }
-                                        ]
+                                            ]
+                                        });
                                     });
                                 });
                             });
