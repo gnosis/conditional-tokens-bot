@@ -74,12 +74,6 @@ conditionalTokenContract.events.PositionSplit({
                                                 type: 'section',
                                                 text: {
                                                     type: 'mrkdwn',
-                                                    text: '---'
-                                                    }
-                                                },{
-                                                type: 'section',
-                                                text: {
-                                                    type: 'mrkdwn',
                                                     text: message.join('\n')
                                                     }
                                                 }
@@ -88,13 +82,6 @@ conditionalTokenContract.events.PositionSplit({
                                                 text: {
                                                     type: 'mrkdwn',
                                                     text: `<!here>`,
-                                                    }
-                                                },
-                                                {
-                                                type: 'section',
-                                                text: {
-                                                    type: 'mrkdwn',
-                                                    text: '---'
                                                     }
                                                 }
                                             ]
