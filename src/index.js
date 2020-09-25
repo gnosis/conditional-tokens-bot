@@ -3,7 +3,7 @@ const Web3 = require('web3');
 const _ = require("lodash/collection");
 const express = require("express");
 const { IncomingWebhook } = require('@slack/webhook');
-const { getconditionalTokensContract } = require('./services/contractEvents');
+const { getconditionalTokensContract, getFixedProductionMarketMakerFactoryContract } = require('./services/contractEvents');
 const { getTokenName, getTokenSymbol, getTokenDecimals } = require('./services/contractERC20');
 const { getQuestion } = require('./services/getQuestion');
 const { getCondition } = require('./services/getCondition');
@@ -12,6 +12,7 @@ const app = express();
 const port = 3000;
 const web3 = new Web3(new Web3.providers.WebsocketProvider(process.env.ETH_NODE));
 const conditionalTokenContract = getconditionalTokensContract(web3);
+const fixedProductMarketMakerContract = getFixedProductionMarketMakerFactoryContract(web3);
 
 app.use(express.json());
 
@@ -32,17 +33,18 @@ if (webhook === undefined) {
 }
 
 /**
- * Split Positions
+ * Watching FixedProductMarketMakerCreation
  */
-conditionalTokenContract.events.PositionSplit({
-    filter: {}, 
-    fromBlock: process.env.START_BLOCK
-}, function(error, event){ 
-    console.log(event); 
+fixedProductMarketMakerContract.events.FixedProductMarketMakerCreation({
+    filter: {},
+    fromBlock: process.env.START_BLOCK,
+}, (error, event) => {
+    console.log(event); // same results as the optional callback above
     // Send the notification
     (async () => {
         const message = new Array('> *New market created!* :tada:\n> ');
-        getCondition(event.returnValues.conditionId).then((conditions) => {
+        //TODO support conditional markets
+        getCondition(event.returnValues.conditionIds[0]).then((conditions) => {
             _.forEach(conditions, condition => {
                 getQuestion(condition.questionId).then((questions) => {
                     if (questions.length == 0) {
@@ -66,10 +68,10 @@ conditionalTokenContract.events.PositionSplit({
                                 getTokenDecimals(web3, event.returnValues.collateralToken).then(decimals => {
                                     web3.eth.getTransaction(event.transactionHash).then(transaction => {
                                         message.push(`> *Collateral*: <https://${urlExplorer}/token/${event.returnValues.collateralToken}|${tokenName}>`,
-                                            `> *Liquidity*: ${(parseFloat(event.returnValues.amount) / 10**decimals ).toFixed(2)} ${tokenSymbol}`,
+                                            `> *Liquidity*: ${parseFloat(questions[0].scaledLiquidityParameter).toFixed(2)} ${tokenSymbol}`,
                                             `> *Omen URL*: <https://omen.eth.link/#/${questions[0].indexedFixedProductMarketMakers}|--&gt;>`,
                                             `> *Created by*: <https://${urlExplorer}/address/${transaction.from}|${transaction.from}>`);
-                                        webhook && webhook.send({
+                                        webhook ? webhook.send({
                                             blocks: [{
                                                 type: 'section',
                                                 text: {
@@ -85,7 +87,7 @@ conditionalTokenContract.events.PositionSplit({
                                                     }
                                                 }
                                             ]
-                                        });
+                                        }) : console.log(event.returnValues.conditionIds[0] + ':\n' + message + '\n\n\n');
                                     });
                                 });
                             });
@@ -95,6 +97,17 @@ conditionalTokenContract.events.PositionSplit({
             });
         });
     })();
+});
+
+/**
+ * Split Positions
+ */
+conditionalTokenContract.events.PositionSplit({
+    filter: {},
+    fromBlock: process.env.START_BLOCK
+}, function(error, event){
+    // Could be a new generic created market or a new trade
+    console.log(event);
 })
 .on('data', function(event){
     console.log(event); // same results as the optional callback above
