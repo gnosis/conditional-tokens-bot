@@ -209,6 +209,8 @@ typings/
 
 # dotenv environment variables file
 .env
+.env.rinkeby
+.env.mainnet
 .env.test
 .env.local
 .env.development.local
