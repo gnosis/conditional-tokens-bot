@@ -43,6 +43,7 @@ fixedProductMarketMakerContract.events.FixedProductMarketMakerCreation({
     // Send the notification
     (async () => {
         const message = new Array('> *New market created!* :tada:\n> ');
+        //TODO support conditional markets
         getCondition(event.returnValues.conditionIds[0]).then((conditions) => {
             _.forEach(conditions, condition => {
                 getQuestion(condition.questionId).then((questions) => {
