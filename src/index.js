@@ -1,4 +1,3 @@
-const _ = require("lodash/collection");
 const express = require("express");
 const schedule = require('node-schedule');
 
@@ -24,6 +23,7 @@ console.log(`Configure get trades job for every ${process.env.JOB_GET_TRADE_MINU
 const timestamp = Math.floor(Date.now() / 1000);
 console.log(`Looking for new trades at ${timestamp}`);
 tradeEvents(web3, webhook, urlExplorer, timestamp, process.env.JOB_GET_TRADE_MINUTES*60);
+
 schedule.scheduleJob(`*/${process.env.JOB_GET_TRADE_MINUTES} * * * *`, function(){
     const timestamp = Math.floor(Date.now() / 1000);
     console.log(`Looking for new trades at ${timestamp}`);

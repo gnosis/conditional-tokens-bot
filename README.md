@@ -1,3 +1,7 @@
 # Conditional Tokens bot
 
-This is a bot to obtain info from Omen and CT from thegranh, translate the conditions and outcomes from oracles (Kleros, Realiti.io) and publish into social networks.
+This is a bot to obtain different events from Contiditional Tokens smart contract, get the conditions strings from the oracles (Kleros, Realiti.io) and publish the obtained information into social networks.
+
+## Configure
+
+Setup 

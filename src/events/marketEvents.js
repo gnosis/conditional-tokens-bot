@@ -1,5 +1,3 @@
-const _ = require("lodash/collection");
-
 const { truncate } = require('../utils/utils');
 const { getFixedProductionMarketMakerFactoryContract } = require('../services/contractEvents');
 const { getTokenName, getTokenSymbol, getTokenDecimals } = require('../services/contractERC20');
@@ -17,22 +15,24 @@ module.exports.marketEvents = async (web3, webhook, urlExplorer) => {
             const message = new Array('<!here>', '*New market created!* :tada:');
             //TODO support conditional markets
             getCondition(event.returnValues.conditionIds[0]).then((conditions) => {
-                _.forEach(conditions, condition => {
+                conditions.forEach(condition => {
                     getQuestion(condition.questionId).then((questions) => {
                         if (questions.length == 0) {
                             console.error(`ERROR: Question for hex "${condition.questionId}" not found on contition ID ${event.returnValues.conditionIds[0]}`);
                         } else {
-                            _.forEach(questions, question => {
-                                message.push(`> *<https://omen.eth.link/#/${condition.fixedProductMarketMakers}|${question.title}>*`,
-                                    `> *Outcomes:*`);
+                            message.push(questions.map(question => 
+                                `> *<https://omen.eth.link/#/${condition.fixedProductMarketMakers}|${question.title}>*\n> *Outcomes:*`
+                            ));
+                            questions.forEach(question => {
                                 if (condition.outcomeTokenMarginalPrices) {
-                                    _.forEach(question.outcomes, (outcome, i) => {
-                                        message.push(`> \`${(parseFloat(condition.outcomeTokenMarginalPrices[i]) * 100 ).toFixed(2)}%\` - ${outcome}`);
-                                    });
+                                    message.push(
+                                        question.outcomes.map((outcome, i) => 
+                                            `> \`${(parseFloat(condition.outcomeTokenMarginalPrices[i]) * 100 )
+                                                .toFixed(2)}%\` - ${outcome}`
+                                        ));
                                 } else {
-                                    _.forEach(question.outcomes, (outcome, i) => {
-                                        message.push(`> - ${outcome}`);
-                                    });
+                                    message.push(
+                                        question.outcomes.map(outcome => `> - ${outcome}`));
                                 }
                             });
                             getTokenName(web3, event.returnValues.collateralToken).then(tokenName => {
@@ -52,7 +52,7 @@ module.exports.marketEvents = async (web3, webhook, urlExplorer) => {
                                                     }
                                                 ]
                                             });
-                                            console.log(event.returnValues.conditionIds[0] + ':\n' + message + '\n');
+                                            console.log(event.returnValues.conditionIds[0] + ':\n' + message.join('\n') + '\n\n');
                                         });
                                     });
                                 });

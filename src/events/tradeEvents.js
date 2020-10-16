@@ -1,12 +1,10 @@
-const _ = require("lodash/collection");
-
 const { truncate } = require('../utils/utils');
 const { getTokenName, getTokenDecimals } = require('../services/contractERC20');
 const { getTrade, getOldTrade } = require('../services/getTrade');
 
 module.exports.tradeEvents = async (web3, webhook, urlExplorer, timestamp, seconds) => {
     getTrade(timestamp, seconds, 20).then(trades => {
-        _.forEach(trades, trade => {
+        trades.forEach(trade => {
             const message = new Array();
             const type = (trade.type === 'Buy') ? 'purchased' : 'sold';
             const odds = parseFloat(trade.outcomeTokenMarginalPrices[trade.outcomeIndex] * 100 ).toFixed(2);
@@ -20,7 +18,8 @@ module.exports.tradeEvents = async (web3, webhook, urlExplorer, timestamp, secon
                     // TODO add oldTrade to the subgraph
                     getOldTrade(trade.id).then(oldTrade => {
                         const oldOdds = oldTrade ? parseFloat(oldTrade.outcomeTokenMarginalPrices[trade.outcomeIndex] * 100 ).toFixed(2) : '0.00';
-                        message.push(`> ${amount} <https://${urlExplorer}/token/${trade.collateralToken}|${tokenName}> of *${trade.outcomes[trade.outcomeIndex]}* ${type} in "<https://omen.eth.link/#/${trade.fpmm}|${trade.title}>".`,
+                        const outcome = trade.outcomes ? trade.outcomes[trade.outcomeIndex] : trade.outcomeIndex;
+                        message.push(`> ${amount} <https://${urlExplorer}/token/${trade.collateralToken}|${tokenName}> of *${outcome}* ${type} in "<https://omen.eth.link/#/${trade.fpmm}|${trade.title}>".`,
                             `> Outcome odds: ${oldOdds}% --> ${odds}%`,
                             `> *Created by*: <https://omen.eth.link/#/${trade.creator}|${truncate(trade.creator, 14)}>`,
                         );

@@ -1,8 +1,7 @@
 const fetch = require('node-fetch');
-const _ = require("lodash/collection");
 
 module.exports.getQuestion = (questionId) => {
-  const jsonQuery = { query: `{  questions(  where: {    id: \"${questionId}\"  }  ) { id templateId outcomes title category }}` }
+  const jsonQuery = { query: `{  questions(  where: {    id: \"${questionId}\"  }  ) { id outcomes title category }}` }
 
   const promise = fetch(process.env.THE_GRAPH_OMEN, {
     headers: { 'Content-Type': 'application/json' },
@@ -11,15 +10,16 @@ module.exports.getQuestion = (questionId) => {
   }).then(res => res.json())
   .catch(error => console.error('Error:', error))
   .then(json => {
-    const questions = new Array();
-    _.forEach(json.data.questions, question => {
-      questions.push({
+    if(json.errors) {
+      throw new Error(json.errors.map(message));
+    }
+    return json.data.questions && json.data.questions.map(question => 
+      ({
         title: question.title,
         outcomes: question.outcomes,
         category: question.category,
       })
-    });
-    return questions;
+    );
   });
 
   return promise;
