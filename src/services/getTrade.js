@@ -11,7 +11,7 @@ module.exports.getTrade = (creationTimestamp, seconds, limit) => {
   .catch(error => console.error('Error:', error))
   .then(json => {
     if(json.errors) {
-      throw new Error(json.errors.map(message));
+      throw new Error(json.errors.map(error => error.message));
     }
     return json.data.fpmmTrades && json.data.fpmmTrades.map(trade => 
       ({
@@ -46,7 +46,7 @@ module.exports.getOldTrade = (notId) => {
   .catch(error => console.error('Error:', error))
   .then(json => {
     if(json.errors) {
-      throw new Error(json.errors.map(message));
+      throw new Error(json.errors.map(error => error.message));
     }
     if(json.data.fpmmTrades && json.data.fpmmTrades.length > 0) {
       const trade = json.data.fpmmTrades[0];

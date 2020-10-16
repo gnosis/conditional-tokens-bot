@@ -7,11 +7,12 @@ module.exports.getCondition = (conditionId) => {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(jsonQuery),
     method: "POST",
-  }).then(res => res.json())
+  })
+  .then(res => res.json())
   .catch(error => console.error('Error:', error))
   .then(json => {
     if(json.errors) {
-      throw new Error(json.errors.map(message));
+      throw new Error(json.errors.map(error => error.message));
     }
     return json.data.conditions && json.data.conditions.map(condition => 
       ({
