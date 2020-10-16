@@ -1,9 +1,10 @@
 const express = require("express");
 const schedule = require('node-schedule');
 
-const { urlExplorer, webhook, web3 } = require('./config/constants');
-const { marketEvents } = require('./events/marketEvents');
-const { tradeEvents } = require('./events/tradeEvents');
+const { watchNewMarketsEvent } = require('./events/marketEvents');
+const { findTradeEvents } = require('./events/tradeEvents');
+
+// Configure endpoint for readiness
 
 const app = express();
 const port = 3000;
@@ -16,16 +17,14 @@ app.get('/', (req, res) => {
 app.listen(port, () => console.log(`Bot listening on port ${port}!`));
 
 // Watch new market created events
-marketEvents(web3, webhook, urlExplorer);
+watchNewMarketsEvent();
 
 // Look for trade events every minute
 console.log(`Configure get trades job for every ${process.env.JOB_GET_TRADE_MINUTES} minutes`);
-const timestamp = Math.floor(Date.now() / 1000);
-console.log(`Looking for new trades at ${timestamp}`);
-tradeEvents(web3, webhook, urlExplorer, timestamp, process.env.JOB_GET_TRADE_MINUTES*60);
+const pastTimeInSeconds = process.env.JOB_GET_TRADE_MINUTES * 60;
 
-schedule.scheduleJob(`*/${process.env.JOB_GET_TRADE_MINUTES} * * * *`, function(){
-    const timestamp = Math.floor(Date.now() / 1000);
-    console.log(`Looking for new trades at ${timestamp}`);
-    tradeEvents(web3, webhook, urlExplorer, timestamp, process.env.JOB_GET_TRADE_MINUTES*60);
+findTradeEvents(Math.floor(Date.now() / 1000), pastTimeInSeconds);
+schedule.scheduleJob(`*/${process.env.JOB_GET_TRADE_MINUTES} * * * *`, function() {
+    const timestamp = Math.floor(Date.now() / 1000);    
+    findTradeEvents(timestamp, pastTimeInSeconds);
 });
