@@ -1,29 +1,30 @@
 const fetch = require('node-fetch');
-const _ = require("lodash/collection");
 
+/**
+ * Find questions where question id is a given `questionId`.
+ * @param  {} questionId the question Id.
+ * @returns a Question records list.
+ */
 module.exports.getQuestion = (questionId) => {
-  const jsonQuery = { query: `{  questions(  where: {    id: \"${questionId}\"  }  ) { id templateId indexedFixedProductMarketMakers { id outcomeTokenMarginalPrices scaledLiquidityParameter } outcomes title category }}` }
+  const jsonQuery = { query: `{  questions(  where: {    id: \"${questionId}\"  }  ) { id outcomes title category }}` }
 
-  const promise = fetch(process.env.THE_GRAPH_GET_OMEN_QUESTIONS, {
+  return fetch(process.env.THE_GRAPH_OMEN, {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(jsonQuery),
     method: "POST",
-  }).then(res => res.json())
-  .catch(error => console.error('Error:', error))
-  .then(json => {
-    const questions = new Array();
-    _.forEach(json.data.questions, question => {
-      questions.push({
-        title: question.title,
-        outcomes: question.outcomes,
-        category: question.category,
-        indexedFixedProductMarketMakers: question.indexedFixedProductMarketMakers[0].id,
-        outcomeTokenMarginalPrices: question.indexedFixedProductMarketMakers[0].outcomeTokenMarginalPrices,
-        scaledLiquidityParameter: question.indexedFixedProductMarketMakers[0].scaledLiquidityParameter,
-      })
+  })
+    .then(res => res.json())
+    .catch(error => console.error('Error:', error))
+    .then(json => {
+      if(json.errors) {
+        throw new Error(json.errors.map(error => error.message));
+      }
+      return json.data.questions && json.data.questions.map(question => 
+        ({
+          title: question.title,
+          outcomes: question.outcomes,
+          category: question.category,
+        })
+      );
     });
-    return questions;
-  });
-
-  return promise;
 }
