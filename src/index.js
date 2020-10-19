@@ -20,11 +20,12 @@ app.listen(port, () => console.log(`Bot listening on port ${port}!`));
 watchNewMarketsEvent();
 
 // Look for trade events every minute
-console.log(`Configure get trades job for every ${process.env.JOB_GET_TRADE_MINUTES} minutes`);
-const pastTimeInSeconds = process.env.JOB_GET_TRADE_MINUTES * 60;
+const jobTime = process.env.JOB_GET_TRADE_MINUTES ? process.env.JOB_GET_TRADE_MINUTES : 5;
+console.log(`Configure get trades job for every ${jobTime} minutes`);
+const pastTimeInSeconds = jobTime * 60;
 
 findTradeEvents(Math.floor(Date.now() / 1000), pastTimeInSeconds);
-schedule.scheduleJob(`*/${process.env.JOB_GET_TRADE_MINUTES} * * * *`, function() {
+schedule.scheduleJob(`*/${jobTime} * * * *`, function() {
     const timestamp = Math.floor(Date.now() / 1000);    
     findTradeEvents(timestamp, pastTimeInSeconds);
 });
