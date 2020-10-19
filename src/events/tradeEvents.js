@@ -1,6 +1,6 @@
 const { urlExplorer, web3 } = require('../config/constants');
 const { truncate } = require('../utils/utils');
-const { pushSlackMessage } = require('../utils/slack');
+const { pushSlackArrayMessages } = require('../utils/slack');
 const { getTokenName, getTokenDecimals } = require('../services/contractERC20');
 const { getTrade, getOldTrade } = require('../services/getTrade');
 
@@ -38,7 +38,7 @@ module.exports.findTradeEvents = async (timestamp, pastTimeInSeconds) => {
                             `> *Created by*: <https://omen.eth.link/#/${trade.creator}|${truncate(trade.creator, 14)}>`,
                         );
                         // Send Slack notification
-                        pushSlackMessage(message);
+                        pushSlackArrayMessages(message);
                         console.log(message.join('\n') + '\n');
                     });
             });
