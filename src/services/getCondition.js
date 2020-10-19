@@ -1,5 +1,10 @@
 const fetch = require('node-fetch');
 
+/**
+ * Find conditions where condition id is a given `questionId`.
+ * @param  {} conditionId the condition Id.
+ * @returns a Condition records list.
+ */
 module.exports.getCondition = (conditionId) => {
   const jsonQuery = { query: `{  conditions(  where: {    id: \"${conditionId}\"  }  ) { id oracle questionId fixedProductMarketMakers { id outcomeTokenMarginalPrices scaledLiquidityParameter } }}` }
 

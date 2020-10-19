@@ -6,12 +6,26 @@ const { getTokenName, getTokenSymbol } = require('../services/contractERC20');
 const { getQuestion } = require('../services/getQuestion');
 const { getCondition } = require('../services/getCondition');
 
+/**
+ * Watch `FixedProductMarketMakerCreation` events from a `FixedProductionMarketMakerFactory` contract.
+ */
 module.exports.watchNewMarketsEvent = async () => {
     const fixedProductMarketMakerFactoryContract = getFixedProductionMarketMakerFactoryContract(web3);
-
+    
+    /**
+     * Watch `FixedProductMarketMakerCreation` events from a `FixedProductionMarketMakerFactory` contract.
+     * @param  filter filtering options to watch.
+     * @param  {process.env.START_BLOCK} fromBlock start to watch events from 
+     * the given block or from `latest` block.
+     * @param  {} error call to watch event errors.
+     * @param  {} event the event which contains market creation data
+     * on the `returnValues` values like an array with the `conditionIds`,
+     * and the `collateralToken`.
+     * 
+     */
     fixedProductMarketMakerFactoryContract.events.FixedProductMarketMakerCreation({
         filter: {},
-        fromBlock: process.env.START_BLOCK,
+        fromBlock: process.env.START_BLOCK ? process.env.START_BLOCK : 'latest',
     }, (error, event) => {
         (async () => {
             const message = new Array('<!here>', '*New market created!* :tada:');

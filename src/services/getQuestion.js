@@ -1,5 +1,10 @@
 const fetch = require('node-fetch');
 
+/**
+ * Find questions where question id is a given `questionId`.
+ * @param  {} questionId the question Id.
+ * @returns a Question records list.
+ */
 module.exports.getQuestion = (questionId) => {
   const jsonQuery = { query: `{  questions(  where: {    id: \"${questionId}\"  }  ) { id outcomes title category }}` }
 

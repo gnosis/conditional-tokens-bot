@@ -8,7 +8,11 @@ if (webhook === undefined) {
     console.log('SLACK_WEBHOOK_URL not defined!!');
 }
 
-// Send slack message
+/**
+ * Push a message from a given `message` string list.
+ * @param  {} message and array with the message text
+ * to separate elements by `\n` on the Slack pushed message.
+*/
 module.exports.pushSlackMessage = (message) => {
     webhook && webhook.send({
         blocks: [{

@@ -4,6 +4,14 @@ const { pushSlackMessage } = require('../utils/slack');
 const { getTokenName, getTokenDecimals } = require('../services/contractERC20');
 const { getTrade, getOldTrade } = require('../services/getTrade');
 
+/**
+ * Look for last FPMM trade records ordered by `creationTimestamp`.
+ * @param  {} timestamp timestamp in seconds to look for FPMM trade records 
+ * where `creationTimestamp` field is less or equal than `timestamp`.
+ * @param  {} pastTimeInSeconds number of seconds to filter the last FPMM 
+ * trade records where `creationTimestamp` field is greather than 
+ * `timestamp` minus `pastTimeInSeconds`.
+ */
 module.exports.findTradeEvents = async (timestamp, pastTimeInSeconds) => {
     console.log(`Looking for new trades at ${timestamp}`);
     getTrade(timestamp, pastTimeInSeconds, 20)
