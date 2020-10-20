@@ -1,6 +1,6 @@
 const { urlExplorer, web3 } = require('../config/constants');
 const { truncate } = require('../utils/utils');
-const { pushSlackMessage } = require('../utils/slack');
+const { pushSlackArrayMessages } = require('../utils/slack');
 const { getFixedProductionMarketMakerFactoryContract } = require('../services/contractEvents');
 const { getTokenName, getTokenSymbol } = require('../services/contractERC20');
 const { getQuestion } = require('../services/getQuestion');
@@ -63,7 +63,7 @@ module.exports.watchNewMarketsEvent = async () => {
                                     `> *Liquidity*: ${parseFloat(condition.scaledLiquidityParameter).toFixed(2)} ${tokenSymbol}`,
                                     `> *Created by*: <https://${urlExplorer}/address/${transaction.from}|${truncate(transaction.from, 14)}>`);
                                     // Send Slack notification
-                                pushSlackMessage(message);
+                                pushSlackArrayMessages(message);
                                 console.log(event.returnValues.conditionIds[0] + ':\n' + message.join('\n') + '\n\n');
                             });
                     });

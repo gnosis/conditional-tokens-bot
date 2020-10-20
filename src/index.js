@@ -1,11 +1,12 @@
 const express = require("express");
 const schedule = require('node-schedule');
 
+const packageJson = require('../package.json');
+const { pushSlackMessage } = require('./utils/slack');
 const { watchNewMarketsEvent } = require('./events/marketEvents');
 const { findTradeEvents } = require('./events/tradeEvents');
 
 // Configure endpoint for readiness
-
 const app = express();
 const port = 3000;
 
@@ -15,6 +16,12 @@ app.get('/', (req, res) => {
     res.status(200).send('CT bot is running!')
 })
 app.listen(port, () => console.log(`Bot listening on port ${port}!`));
+
+// Start message
+const version = packageJson.version.startsWith('v') ? packageJson.version : `v${packageJson.version}`;
+const startMessage = `Conditional Tokens bot \`${version}\` was started.`;
+pushSlackMessage(startMessage);
+console.log(startMessage);
 
 // Watch new market created events
 watchNewMarketsEvent();
