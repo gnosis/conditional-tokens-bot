@@ -1,6 +1,7 @@
-const { urlExplorer, web3 } = require('../config/constants');
+const { urlExplorer } = require('../config/constants');
 const { truncate } = require('../utils/utils');
 const { pushSlackArrayMessages } = require('../utils/slack');
+const { web3, getLastBlockNumber } = require('../utils/web3');
 const { getFixedProductionMarketMakerFactoryContract } = require('../services/contractEvents');
 const { getTokenName, getTokenSymbol } = require('../services/contractERC20');
 const { getQuestion } = require('../services/getQuestion');
@@ -11,6 +12,7 @@ const { getCondition } = require('../services/getCondition');
  */
 module.exports.watchNewMarketsEvent = async () => {
     const fixedProductMarketMakerFactoryContract = getFixedProductionMarketMakerFactoryContract(web3);
+    const lastBlockNumber = await getLastBlockNumber() - 5;
     
     /**
      * Watch `FixedProductMarketMakerCreation` events from a `FixedProductionMarketMakerFactory` contract.
@@ -25,7 +27,7 @@ module.exports.watchNewMarketsEvent = async () => {
      */
     fixedProductMarketMakerFactoryContract.events.FixedProductMarketMakerCreation({
         filter: {},
-        fromBlock: process.env.START_BLOCK ? process.env.START_BLOCK : 'latest',
+        fromBlock: process.env.START_BLOCK ? process.env.START_BLOCK : lastBlockNumber,
     }, (error, event) => {
         (async () => {
             const message = new Array('<!here>', '*New market created!* :tada:');

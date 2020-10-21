@@ -1,6 +1,7 @@
-const { urlExplorer, web3 } = require('../config/constants');
+const { urlExplorer } = require('../config/constants');
 const { truncate } = require('../utils/utils');
 const { pushSlackArrayMessages } = require('../utils/slack');
+const { web3 } = require('../utils/web3');
 const { getTokenName, getTokenDecimals } = require('../services/contractERC20');
 const { getTrade, getOldTrade } = require('../services/getTrade');
 
