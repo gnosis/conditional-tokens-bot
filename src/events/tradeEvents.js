@@ -26,9 +26,8 @@ module.exports.findTradeEvents = async (timestamp, pastTimeInSeconds) => {
                     getOldTrade(trade.id),
                 ])
                     .then(([tokenName, decimals, oldTrade]) => {
-                        // TODO calculate the amount in USD or add it to the subgraph
                         const amount = parseFloat(trade.collateralAmount / 10**decimals).toFixed(2);
-                        if (amount > 1000) {
+                        if (trade.collateralAmountUSD > 1000.00) {
                             message.push('<!here>');
                         }
                         const oldOdds = oldTrade ? parseFloat(oldTrade.outcomeTokenMarginalPrices[trade.outcomeIndex] * 100 ).toFixed(2) : '0.00';
