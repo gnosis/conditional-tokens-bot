@@ -18,13 +18,13 @@ module.exports.findLiquidityEvents = async (timestamp, pastTimeInSeconds) => {
         .then(liquidities => {
             liquidities.forEach(liquidity => {
                 const message = new Array();
-                const type = (liquidity.type === 'Add') ? 'added' : 'removed';
                 Promise.all([
                     getTokenName(web3, liquidity.collateralToken),
                     getTokenSymbol(web3, liquidity.collateralToken),
                     getTokenDecimals(web3, liquidity.collateralToken),
                 ])
                     .then(([tokenName, tokenSymbol, decimals]) => {
+                        const type = (liquidity.type === 'Add') ? 'added' : 'removed';
                         const amount = parseFloat(liquidity.collateralTokenAmount / 10**decimals).toFixed(2);
                         message.push(`> ${amount} <https://${urlExplorer}/token/${liquidity.collateralToken}|${tokenName}> of liquidity ${type} in "*<https://omen.eth.link/#/${liquidity.fpmm}|${liquidity.title}>*", total liquidity is now *${liquidity.scaledLiquidityParameter} ${tokenSymbol}*.`,
                             `> *Created by*: <https://omen.eth.link/#/${liquidity.funder}|${truncate(liquidity.funder, 14)}>`,
