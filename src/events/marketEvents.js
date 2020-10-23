@@ -81,5 +81,5 @@ module.exports.watchNewMarketsEvent = async (fromBlock) => {
     }
     const toBlock = process.env.START_BLOCK ? 'latest' : await getLastBlockNumber() - 5;
     watchFPMMCreationEvent(fromBlock, toBlock);
-    return toBlock;
+    return (toBlock + 1);
 }
