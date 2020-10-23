@@ -12,7 +12,7 @@ const fetch = require('node-fetch');
  * @returns a FPMM Trade list with the ffpm addres and the outcomes.
  */
 module.exports.getTrade = (creationTimestamp, seconds, limit) => {
-  const jsonQuery = { query: `{fpmmTrades(first: ${limit}, where: { creationTimestamp_gt: \"${creationTimestamp-seconds}\", creationTimestamp_lte: \"${creationTimestamp}\" }, orderBy: creationTimestamp, orderDirection: desc) { id fpmm { id outcomes outcomeTokenMarginalPrices } creator { id } title collateralToken collateralAmount feeAmount type creationTimestamp outcomeIndex outcomeTokensTraded }}` }
+  const jsonQuery = { query: `{fpmmTrades(first: ${limit}, where: { creationTimestamp_gt: \"${creationTimestamp-seconds}\", creationTimestamp_lte: \"${creationTimestamp}\" }, orderBy: creationTimestamp, orderDirection: desc) { id fpmm { id outcomes outcomeTokenMarginalPrices } creator { id } title collateralToken collateralAmount collateralAmountUSD feeAmount type creationTimestamp outcomeIndex outcomeTokensTraded }}` }
 
   const promise = fetch(process.env.THE_GRAPH_OMEN, {
     headers: {'Content-Type': 'application/json'},
@@ -31,6 +31,7 @@ module.exports.getTrade = (creationTimestamp, seconds, limit) => {
         title: trade.title,
         collateralToken: trade.collateralToken,
         collateralAmount: trade.collateralAmount,
+        collateralAmountUSD: trade.collateralAmountUSD,
         feeAmount: trade.feeAmount,
         type: trade.type,
         creator: trade.creator.id,
