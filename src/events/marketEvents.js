@@ -42,21 +42,20 @@ const watchFPMMCreationEvent = async (fromBlock, toBlock) => {
                                     if (questions.length == 0) {
                                         console.error(`ERROR: Question for hex "${condition.questionId}" not found on contition ID ${event.returnValues.conditionIds[0]}`);
                                     } else {
-                                        message.push(questions.map(question => 
-                                            `> *<https://omen.eth.link/#/${condition.fixedProductMarketMakers}|${question.title}>*\n> *Outcomes:*`
-                                        ));
-                                        questions.forEach(question => {
-                                            if (condition.outcomeTokenMarginalPrices) {
-                                                message.push(
-                                                    question.outcomes.map((outcome, i) => 
-                                                        `> \`${(parseFloat(condition.outcomeTokenMarginalPrices[i]) * 100 )
-                                                            .toFixed(2)}%\` - ${outcome}`
-                                                    ));
-                                            } else {
-                                                message.push(
-                                                    question.outcomes.map(outcome => `> - ${outcome}`));
-                                            }
-                                        });
+                                        message.push(questions.map(question => {
+                                            return `> *<https://omen.eth.link/#/${condition.fixedProductMarketMakers}|${question.title}>*\n> *Outcomes:*`;
+                                        }));
+                                        message.push(
+                                            (questions.map(question => {
+                                                if (condition.outcomeTokenMarginalPrices) {
+                                                        return question.outcomes.map((outcome, i) =>
+                                                            `> \`${(parseFloat(condition.outcomeTokenMarginalPrices[i]) * 100 )
+                                                                .toFixed(2)}%\` - ${outcome}`
+                                                        );
+                                                } else {
+                                                        return question.outcomes.map(outcome => `> - ${outcome}`);
+                                                }
+                                        })));
                                     }
                                     message.push(`> *Collateral*: <https://${urlExplorer}/token/${event.returnValues.collateralToken}|${tokenName}>`,
                                         `> *Liquidity*: ${parseFloat(condition.scaledLiquidityParameter).toFixed(2)} ${tokenSymbol}`,
