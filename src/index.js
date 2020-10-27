@@ -5,6 +5,7 @@ const packageJson = require('../package.json');
 const { pushSlackMessage } = require('./utils/slack');
 const { watchNewMarketsEvent } = require('./events/marketEvents');
 const { findTradeEvents } = require('./events/tradeEvents');
+const { findLiquidityEvents } = require('./events/liquidityEvents');
 
 // Configure endpoint for readiness
 const app = express();
@@ -35,11 +36,15 @@ schedule.scheduleJob(`*/${jobTime} * * * *`, function() {
 });
 
 // Look for trade events every minute
-console.log(`Configure get trades job for every ${jobTime} minutes`);
+const jobTime = process.env.JOB_GET_TRADE_MINUTES ? process.env.JOB_GET_TRADE_MINUTES : 5;
+console.log(`Configure to find trade and liquidity events for every ${jobTime} minutes`);
 const pastTimeInSeconds = jobTime * 60;
 
-findTradeEvents(Math.floor(Date.now() / 1000), pastTimeInSeconds);
+const timestamp = Math.floor(Date.now() / 1000);
+findTradeEvents(timestamp, pastTimeInSeconds);
+findLiquidityEvents(timestamp, pastTimeInSeconds);
 schedule.scheduleJob(`*/${jobTime} * * * *`, function() {
-    const timestamp = Math.floor(Date.now() / 1000);    
+    const timestamp = Math.floor(Date.now() / 1000);
     findTradeEvents(timestamp, pastTimeInSeconds);
+    findLiquidityEvents(timestamp, pastTimeInSeconds);
 });
