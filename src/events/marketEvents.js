@@ -4,7 +4,7 @@ const { pushSlackArrayMessages } = require('../utils/slack');
 const { web3, getLastBlockNumber } = require('../utils/web3');
 const { getFixedProductionMarketMakerFactoryContract, getconditionalTokensContract } = require('../services/contractEvents');
 const { getTokenName, getTokenSymbol } = require('../services/contractERC20');
-const { getQuestion } = require('../services/getQuestion');
+const { getQuestion, getQuestionByOpeningTimestamp } = require('../services/getQuestion');
 const { getCondition } = require('../services/getCondition');
 
 const fixedProductMarketMakerFactoryContract = getFixedProductionMarketMakerFactoryContract(web3);
@@ -139,4 +139,23 @@ module.exports.watchResolvedMarketsEvent = async (fromBlock) => {
     const toBlock = await getLastBlockNumber() - 5;
     getResolvedMarketsEvents(fromBlock, toBlock);
     return (toBlock + 1);
+}
+
+/**
+ * Look for Question records where `openingTimestamp` field is between `timestamp`
+ * and `timestamp-pastTimeInSeconds`.
+ * @param timestamp timestamp in seconds to look for Question records.
+ * @param pastTimeInSeconds number of seconds to filter the ready Market question.
+ */
+module.exports.findMarketReadyByQuestionOpeningTimestamp = async (timestamp, pastTimeInSeconds) => {
+    console.log(`Looking for markets ready to be resolved between ${timestamp-pastTimeInSeconds} and ${timestamp}`);
+    const questions = await getQuestionByOpeningTimestamp(timestamp, pastTimeInSeconds, 20);
+    questions.forEach(question => {
+        const message = new Array(
+            '*Market ready for resolution*',
+            `*Title:* <https://omen.eth.link/#/${question.indexedFixedProductMarketMakers}|${question.title}>`,
+        );
+        pushSlackArrayMessages(message);
+        console.log(question.id + ':\n' + message.join('\n') + '\n\n');
+    });
 }

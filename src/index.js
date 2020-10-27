@@ -4,7 +4,9 @@ const schedule = require('node-schedule');
 const packageJson = require('../package.json');
 const { port, jobTime } = require('./config');
 const { pushSlackMessage } = require('./utils/slack');
-const { watchCreationMarketsEvent, watchResolvedMarketsEvent } = require('./events/marketEvents');
+const { watchCreationMarketsEvent, 
+    watchResolvedMarketsEvent, 
+    findMarketReadyByQuestionOpeningTimestamp } = require('./events/marketEvents');
 const { findTradeEvents } = require('./events/tradeEvents');
 const { findLiquidityEvents } = require('./events/liquidityEvents');
 
@@ -35,8 +37,7 @@ schedule.scheduleJob(`*/${jobTime} * * * *`, function() {
     watchResolvedMarketsEvent(fromBlock);
 });
 
-// Look for trade events every minute
-console.log(`Configure to find trade and liquidity events for every ${jobTime} minutes`);
+console.log(`Configure to find trade, liquidity events and market ready to be resolved for every ${jobTime} minutes`);
 const pastTimeInSeconds = jobTime * 60;
 
 const timestamp = Math.floor(Date.now() / 1000);
@@ -46,4 +47,6 @@ schedule.scheduleJob(`*/${jobTime} * * * *`, function() {
     const timestamp = Math.floor(Date.now() / 1000);
     findTradeEvents(timestamp, pastTimeInSeconds);
     findLiquidityEvents(timestamp, pastTimeInSeconds);
+    // Find markets ready to be resolved
+    findMarketReadyByQuestionOpeningTimestamp(timestamp, pastTimeInSeconds);
 });
