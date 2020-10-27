@@ -6,7 +6,8 @@ const { port, jobTime } = require('./config');
 const { pushSlackMessage } = require('./utils/slack');
 const { watchCreationMarketsEvent, 
     watchResolvedMarketsEvent, 
-    findMarketReadyByQuestionOpeningTimestamp } = require('./events/marketEvents');
+    findMarketReadyByQuestionOpeningTimestamp,
+    findMarketIsPendingArbitration } = require('./events/marketEvents');
 const { findTradeEvents } = require('./events/tradeEvents');
 const { findLiquidityEvents } = require('./events/liquidityEvents');
 
@@ -49,4 +50,6 @@ schedule.scheduleJob(`*/${jobTime} * * * *`, function() {
     findLiquidityEvents(timestamp, pastTimeInSeconds);
     // Find markets ready to be resolved
     findMarketReadyByQuestionOpeningTimestamp(timestamp, pastTimeInSeconds);
+    // Find markets is pending arbitration
+    findMarketIsPendingArbitration(timestamp);
 });

@@ -64,3 +64,36 @@ module.exports.getQuestionByOpeningTimestamp = (openingTimestamp, seconds, limit
       );
     });
 }
+
+/**
+ * Find questions where `isPendingArbitration` field is `true` on
+ * the closing date giving by the field `openingTimestamp`
+ * is greather or equals than `openingTimestamp` timestamp.
+ * @param openingTimestamp timestamp in seconds.
+ * @param limit number of first Question elements to retrieve.
+ * @returns a Question records list.
+ */
+module.exports.findQuestionByIsPendingArbitration = (openingTimestamp, limit) => {
+  const jsonQuery = { query: `{  questions(first: ${limit}, where: { isPendingArbitration: true, openingTimestamp_gte: \"${openingTimestamp}\"}) { id outcomes title indexedFixedProductMarketMakers { id }}}` }
+
+  return fetch(process.env.THE_GRAPH_OMEN, {
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(jsonQuery),
+    method: "POST",
+  })
+    .then(res => res.json())
+    .catch(error => console.error('Error:', error))
+    .then(json => {
+      if(json.errors) {
+        throw new Error(json.errors.map(error => error.message));
+      }
+      return json.data.questions && json.data.questions.map(question =>
+        ({
+          id: question.id,
+          title: question.title,
+          outcomes: question.outcomes,
+          indexedFixedProductMarketMakers: (question.indexedFixedProductMarketMakers.length > 0) ? question.indexedFixedProductMarketMakers[0].id : null,
+        })
+      );
+    });
+}
