@@ -117,6 +117,7 @@ const getResolvedMarketsEvents = async (fromBlock, toBlock) => {
 
 /**
  * Watch `FixedProductMarketMakerCreation` events from a `FixedProductionMarketMakerFactory` contract.
+ * @param fromBlock
  */
 module.exports.watchCreationMarketsEvent = async (fromBlock) => {
     if (fromBlock === 0) {
@@ -129,10 +130,11 @@ module.exports.watchCreationMarketsEvent = async (fromBlock) => {
 
 /**
  * Watch `FixedProductMarketMakerCreation` events from a `FixedProductionMarketMakerFactory` contract.
+ * @param fromBlock
  */
 module.exports.watchResolvedMarketsEvent = async (fromBlock) => {
     if (fromBlock === 0) {
-        fromBlock = await getLastBlockNumber() - 100000;
+        fromBlock = await getLastBlockNumber() - 10;
     }
     const toBlock = await getLastBlockNumber() - 5;
     getResolvedMarketsEvents(fromBlock, toBlock);
