@@ -3,12 +3,12 @@ const fetch = require('node-fetch');
 /**
  * Look for last FPMM trade records ordered by `creationTimestamp` in 
  * descendent order direction.
- * @param  {} timestamp timestamp in seconds to look for FPMM trade records 
+ * @param creationTimestamp timestamp in seconds to look for FPMM trade records 
  * where `creationTimestamp` field is less or equal than `timestamp`.
- * @param  {} pastTimeInSeconds number of seconds to filter the last FPMM 
+ * @param seconds number of seconds to filter the last FPMM 
  * trade records where `creationTimestamp` field is greather than 
- * `timestamp` minus `pastTimeInSeconds`.
- * @limit number of first Trade elements to retrieve.
+ * `creationTimestamp - seconds`.
+ * @param limit number of first Trade elements to retrieve.
  * @returns a FPMM Trade list with the ffpm addres and the outcomes.
  */
 module.exports.getTrade = (creationTimestamp, seconds, limit) => {
