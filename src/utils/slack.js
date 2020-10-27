@@ -1,6 +1,6 @@
 const { IncomingWebhook } = require('@slack/webhook');
 
-const { slackUrl } = require('../config/constants');
+const { slackUrl } = require('../config');
 
 // Initialize webhook for Slack
 const webhook = slackUrl ? new IncomingWebhook(slackUrl) : undefined;
