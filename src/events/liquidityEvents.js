@@ -1,8 +1,9 @@
-const { urlExplorer, web3 } = require('../config/constants');
+const { urlExplorer } = require('../config/constants');
 const { truncate } = require('../utils/utils');
 const { pushSlackArrayMessages } = require('../utils/slack');
 const { getTokenName, getTokenSymbol, getTokenDecimals } = require('../services/contractERC20');
 const { getLiquidity } = require('../services/getLiquidity');
+const { web3 } = require('../utils/web3');
 
 /**
  * Look for last FPMM liquidity records ordered by `creationTimestamp`.

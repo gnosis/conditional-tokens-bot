@@ -2,6 +2,7 @@ const express = require("express");
 const schedule = require('node-schedule');
 
 const packageJson = require('../package.json');
+const { port, jobTime } = require('./config');
 const { pushSlackMessage } = require('./utils/slack');
 const { watchNewMarketsEvent } = require('./events/marketEvents');
 const { findTradeEvents } = require('./events/tradeEvents');
@@ -9,7 +10,6 @@ const { findLiquidityEvents } = require('./events/liquidityEvents');
 
 // Configure endpoint for readiness
 const app = express();
-const port = 3000;
 
 app.use(express.json());
 
@@ -24,10 +24,8 @@ const startMessage = `Conditional Tokens bot \`${version}\` was started.`;
 pushSlackMessage(startMessage);
 console.log(startMessage);
 
-const jobTime = process.env.JOB_GET_TRADE_MINUTES ? process.env.JOB_GET_TRADE_MINUTES : 5;
-
 // Watch new market created events
-let lastUsedBlock = 0
+let lastUsedBlock = 0;
 schedule.scheduleJob(`*/${jobTime} * * * *`, function() {
     const fromBlock = lastUsedBlock ? lastUsedBlock : 0;
     watchNewMarketsEvent(fromBlock).then(toBlock => {
@@ -36,7 +34,6 @@ schedule.scheduleJob(`*/${jobTime} * * * *`, function() {
 });
 
 // Look for trade events every minute
-const jobTime = process.env.JOB_GET_TRADE_MINUTES ? process.env.JOB_GET_TRADE_MINUTES : 5;
 console.log(`Configure to find trade and liquidity events for every ${jobTime} minutes`);
 const pastTimeInSeconds = jobTime * 60;
 
