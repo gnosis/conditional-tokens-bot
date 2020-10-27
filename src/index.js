@@ -24,8 +24,16 @@ const startMessage = `Conditional Tokens bot \`${version}\` was started.`;
 pushSlackMessage(startMessage);
 console.log(startMessage);
 
+const jobTime = process.env.JOB_GET_TRADE_MINUTES ? process.env.JOB_GET_TRADE_MINUTES : 5;
+
 // Watch new market created events
-watchNewMarketsEvent();
+let lastUsedBlock = 0
+schedule.scheduleJob(`*/${jobTime} * * * *`, function() {
+    const fromBlock = lastUsedBlock ? lastUsedBlock : 0;
+    watchNewMarketsEvent(fromBlock).then(toBlock => {
+        lastUsedBlock = toBlock;
+    });
+});
 
 // Look for trade events every minute
 const jobTime = process.env.JOB_GET_TRADE_MINUTES ? process.env.JOB_GET_TRADE_MINUTES : 5;
