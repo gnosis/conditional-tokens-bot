@@ -2,22 +2,23 @@ const { urlExplorer } = require('../config/constants');
 const { truncate } = require('../utils/utils');
 const { pushSlackArrayMessages } = require('../utils/slack');
 const { web3, getLastBlockNumber } = require('../utils/web3');
-const { getFixedProductionMarketMakerFactoryContract } = require('../services/contractEvents');
+const { getFixedProductionMarketMakerFactoryContract, getconditionalTokensContract } = require('../services/contractEvents');
 const { getTokenName, getTokenSymbol } = require('../services/contractERC20');
 const { getQuestion } = require('../services/getQuestion');
 const { getCondition } = require('../services/getCondition');
 
 const fixedProductMarketMakerFactoryContract = getFixedProductionMarketMakerFactoryContract(web3);
+const conditionalTokensContract = getconditionalTokensContract(web3);
 
 /**
- * Watch `FixedProductMarketMakerCreation` events from a `FixedProductionMarketMakerFactory` contract.
+ * Get `FixedProductMarketMakerCreation` events from a `FixedProductionMarketMakerFactory` contract.
  * @param  fromBlock
  * @param  toBlock
  * on the `returnValues` values like an array with the `conditionIds`,
  * and the `collateralToken`.
  * 
  */
-const watchFPMMCreationEvent = async (fromBlock, toBlock) => {
+const getFPMMCreationEvent = async (fromBlock, toBlock) => {
     console.log(`Watching market creation events from ${fromBlock} to ${toBlock} block.`);
 
     fixedProductMarketMakerFactoryContract.getPastEvents('FixedProductMarketMakerCreation', {
@@ -72,13 +73,70 @@ const watchFPMMCreationEvent = async (fromBlock, toBlock) => {
 }
 
 /**
- * Watch `FixedProductMarketMakerCreation` events from a `FixedProductionMarketMakerFactory` contract.
+ * Get `ConditionResolution` events from a `ConditionalTokens` contract.
+ * @param  fromBlock
+ * @param  toBlock
+ * on the `returnValues` returns the following parameters:
+ * bytes32 indexed `conditionId` the condition id of the market.
+ * address indexed `oracle` the oracle that calls the function `reportPayouts`.
+ * bytes32 indexed `questionId` the question id the oracle is answering for.
+ * uint `outcomeSlotCount` the number of the outcomes reported.
+ * uint[] `payoutNumerators` the oracle's answer reported.
  */
-module.exports.watchNewMarketsEvent = async (fromBlock) => {
+const getResolvedMarketsEvents = async (fromBlock, toBlock) => {
+    console.log(`Watching condition resolution events from ${fromBlock} to ${toBlock} block.`);
+
+    conditionalTokensContract.getPastEvents('ConditionResolution', {
+        filter: {},
+        fromBlock,
+        toBlock,
+    }, (error, events) => {
+        events.forEach(event => {
+            (async () => {
+                const questions = await getQuestion(event.returnValues.questionId);
+                if (questions.length > 0) {
+                    const message = new Array(
+                        '*Market resolved*',
+                        `*Title:* <https://omen.eth.link/#/${questions[0].indexedFixedProductMarketMakers}|${questions[0].title}>`,
+                        `*Answer:*`,
+                    );
+                    event.returnValues.payoutNumerators.forEach((payout, index) => {
+                        if(payout === '1') {
+                            message.push(`- ${questions[0].outcomes[index]}`);
+                        }
+                    });
+                    pushSlackArrayMessages(message);
+                    console.log(event.returnValues.questionId + ':\n' + message.join('\n') + '\n\n');
+                } else {
+                    console.error(`ERROR: Question for hex "${event.returnValues.questionId}" not found on Omen subgraph.`);
+                }
+            })();
+        });
+    });
+}
+
+/**
+ * Watch `FixedProductMarketMakerCreation` events from a `FixedProductionMarketMakerFactory` contract.
+ * @param fromBlock
+ */
+module.exports.watchCreationMarketsEvent = async (fromBlock) => {
     if (fromBlock === 0) {
         fromBlock = await getLastBlockNumber() - 10;
     }
     const toBlock = await getLastBlockNumber() - 5;
-    watchFPMMCreationEvent(fromBlock, toBlock);
+    getFPMMCreationEvent(fromBlock, toBlock);
+    return (toBlock + 1);
+}
+
+/**
+ * Watch `FixedProductMarketMakerCreation` events from a `FixedProductionMarketMakerFactory` contract.
+ * @param fromBlock
+ */
+module.exports.watchResolvedMarketsEvent = async (fromBlock) => {
+    if (fromBlock === 0) {
+        fromBlock = await getLastBlockNumber() - 10;
+    }
+    const toBlock = await getLastBlockNumber() - 5;
+    getResolvedMarketsEvents(fromBlock, toBlock);
     return (toBlock + 1);
 }
