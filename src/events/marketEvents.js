@@ -4,7 +4,7 @@ const { pushSlackArrayMessages } = require('../utils/slack');
 const { web3, getLastBlockNumber } = require('../utils/web3');
 const { getFixedProductionMarketMakerFactoryContract, getconditionalTokensContract } = require('../services/contractEvents');
 const { getTokenName, getTokenSymbol } = require('../services/contractERC20');
-const { getQuestion, getQuestionByOpeningTimestamp, findQuestionByIsPendingArbitration } = require('../services/getQuestion');
+const { getQuestion, getQuestionByOpeningTimestamp } = require('../services/getQuestion');
 const { getCondition } = require('../services/getCondition');
 
 const fixedProductMarketMakerFactoryContract = getFixedProductionMarketMakerFactoryContract(web3);
@@ -153,24 +153,6 @@ module.exports.findMarketReadyByQuestionOpeningTimestamp = async (timestamp, pas
     questions.forEach(question => {
         const message = new Array(
             '*Market ready for resolution*',
-            `*Title:* <https://omen.eth.link/#/${question.indexedFixedProductMarketMakers}|${question.title}>`,
-        );
-        pushSlackArrayMessages(message);
-        console.log(question.id + ':\n' + message.join('\n') + '\n\n');
-    });
-}
-
-/**
- * Look for Question records where `isPendingArbitration` is true 
- * and the field `openingTimestamp` is greather or equals than `timestamp`
- * @param timestamp timestamp in seconds to look for Question records.
- */
-module.exports.findMarketIsPendingArbitration = async (timestamp) => {
-    console.log(`Looking for markets on arbitration after openingTimestamp ${timestamp}`);
-    const questions = await findQuestionByIsPendingArbitration(timestamp, 20);
-    questions.forEach(question => {
-        const message = new Array(
-            '*Market is in arbitration*',
             `*Title:* <https://omen.eth.link/#/${question.indexedFixedProductMarketMakers}|${question.title}>`,
         );
         pushSlackArrayMessages(message);
