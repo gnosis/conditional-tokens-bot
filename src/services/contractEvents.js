@@ -18,6 +18,10 @@ module.exports.getFixedProductionMarketMakerFactoryContract = (web3) => {
     return new web3.eth.Contract(fixedProductMarketMakerFactoryContractAbi, process.env.FIXED_PRODUCT_MM_FACTORY_ADDRESS);
 }
 
+/**
+ * Returns a `Realitio` contract instance from a given web3 instance.
+ * @param web3 the web3 instance.
+ */
 module.exports.getRealitioContract = (web3) => {
     return new web3.eth.Contract(realitioContractAbi, process.env.REALITIO_CONTRACT_ADDRESS);
 }
