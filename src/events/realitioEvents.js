@@ -26,8 +26,8 @@ const getRealitioLogNotifyOfArbitrationRequestEvent = async (fromBlock, toBlock)
                 const questions = await getQuestion(event.returnValues.question_id);
                 questions.forEach(question => {
                     const message = new Array(
-                        '*Market is in arbitration*',
-                        `*Title:* <https://omen.eth.link/#/${question.indexedFixedProductMarketMakers}|${question.title}>`,
+                        '> *Market is in arbitration*',
+                        `> *Title:* <https://omen.eth.link/#/${question.indexedFixedProductMarketMakers}|${question.title}>`,
                     );
                     pushSlackArrayMessages(message);
                     console.log(question.id + ':\n' + message.join('\n') + '\n\n');

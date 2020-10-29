@@ -96,13 +96,13 @@ const getResolvedMarketsEvents = async (fromBlock, toBlock) => {
                 const questions = await getQuestion(event.returnValues.questionId);
                 if (questions.length > 0) {
                     const message = new Array(
-                        '*Market resolved*',
-                        `*Title:* <https://omen.eth.link/#/${questions[0].indexedFixedProductMarketMakers}|${questions[0].title}>`,
-                        `*Answer:*`,
+                        '> *Market resolved*',
+                        `> *Title:* <https://omen.eth.link/#/${questions[0].indexedFixedProductMarketMakers}|${questions[0].title}>`,
+                        `> *Answer:*`,
                     );
                     event.returnValues.payoutNumerators.forEach((payout, index) => {
                         if(payout === '1') {
-                            message.push(`- ${questions[0].outcomes[index]}`);
+                            message.push(`> - ${questions[0].outcomes[index]}`);
                         }
                     });
                     pushSlackArrayMessages(message);
@@ -152,8 +152,8 @@ module.exports.findMarketReadyByQuestionOpeningTimestamp = async (timestamp, pas
     const questions = await getQuestionByOpeningTimestamp(timestamp, pastTimeInSeconds, 20);
     questions.forEach(question => {
         const message = new Array(
-            '*Market ready for resolution*',
-            `*Title:* <https://omen.eth.link/#/${question.indexedFixedProductMarketMakers}|${question.title}>`,
+            '> *Market ready for resolution*',
+            `> *Title:* <https://omen.eth.link/#/${question.indexedFixedProductMarketMakers}|${question.title}>`,
         );
         pushSlackArrayMessages(message);
         console.log(question.id + ':\n' + message.join('\n') + '\n\n');
