@@ -16,7 +16,7 @@ const { getTrade, getOldTrade } = require('../services/getTrade');
 module.exports.findTradeEvents = async (timestamp, pastTimeInSeconds) => {
     console.log(`Looking for new trades at ${timestamp}`);
     const trades = await getTrade(timestamp, pastTimeInSeconds, 20)
-    trades.forEach(async trade => {
+    for (const trade of trades) {
         const message = new Array();
         const type = (trade.type === 'Buy') ? 'purchased' : 'sold';
         const odds = parseFloat(trade.outcomeTokenMarginalPrices[trade.outcomeIndex] * 100 ).toFixed(2);
@@ -36,5 +36,5 @@ module.exports.findTradeEvents = async (timestamp, pastTimeInSeconds) => {
         // Send Slack notification
         pushSlackArrayMessages(message);
         console.log(message.join('\n') + '\n');
-    });
+    }
 }
