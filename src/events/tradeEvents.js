@@ -27,7 +27,7 @@ module.exports.findTradeEvents = async (timestamp, pastTimeInSeconds) => {
         if (trade.collateralAmountUSD > 1000.00) {
             message.push('<!here>');
         }
-        const oldOdds = oldTrade ? parseFloat(oldTrade.outcomeTokenMarginalPrices[trade.outcomeIndex] * 100 ).toFixed(2) : '0.00';
+        const oldOdds = (oldTrade && oldTrade.outcomeTokenMarginalPrices) ? parseFloat(oldTrade.outcomeTokenMarginalPrices[trade.outcomeIndex] * 100 ).toFixed(2) : '0.00';
         const outcome = trade.outcomes ? trade.outcomes[trade.outcomeIndex] : trade.outcomeIndex;
         message.push(`> ${amount} <https://${urlExplorer}/token/${trade.collateralToken}|${tokenName}> of *${outcome}* ${type} in "<https://omen.eth.link/#/${trade.fpmm}|${trade.title}>".`,
             `> Outcome odds: ${oldOdds}% --> ${odds}%`,
