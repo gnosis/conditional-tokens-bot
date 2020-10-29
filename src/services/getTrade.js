@@ -49,12 +49,16 @@ module.exports.getTrade = (creationTimestamp, seconds, limit) => {
 
 /**
  * Look for the fist last FPMM trade record ordered by `creationTimestamp` in 
- * descendent order direction where `id` is NOT the given `notId`.
- * @param  {} notId the `id` hex value to filter by not this given value.
+ * descendent order direction where market id is the given `fpmmId`,
+ * the trade id is NOT the given `notTradeId`, and
+ * the creationTimestamp is less than `creationTimestamp`.
+ * @param fpmmId the `id` of the market.
+ * @param notTradeId the `id` hex value to filter by not this given value.
+ * @param creationTimestamp the creation timestamp is before `creationTimestamp`.
  * @returns a last FPMM trade record.
  */
-module.exports.getOldTrade = (notId) => {
-  const jsonQuery = { query: `{fpmmTrades(first: 1, where: { id_not: \"${notId}\" }, orderBy: creationTimestamp, orderDirection: desc) { id fpmm { id outcomeTokenMarginalPrices } }}` }
+module.exports.getOldTrade = (fpmmId, notTradeId, creationTimestamp) => {
+  const jsonQuery = { query: `{fpmmTrades(first: 1, where: { fpmm: \"${fpmmId}\", id_not: \"${notTradeId}\", creationTimestamp_lt: \"${creationTimestamp}\" }, orderBy: creationTimestamp, orderDirection: desc) { id fpmm { id outcomeTokenMarginalPrices } }}` }
 
   const promise = fetch(process.env.THE_GRAPH_OMEN, {
     headers: {'Content-Type': 'application/json'},
