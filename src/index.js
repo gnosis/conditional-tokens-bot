@@ -8,6 +8,7 @@ const { watchCreationMarketsEvent,
     watchResolvedMarketsEvent, 
     findMarketReadyByQuestionOpeningTimestamp,
     findMarketIsPendingArbitration } = require('./events/marketEvents');
+const { findLogNotifyOfArbitrationRequestArbitration } = require('./events/realitioEvents');
 const { findTradeEvents } = require('./events/tradeEvents');
 const { findLiquidityEvents } = require('./events/liquidityEvents');
 
@@ -36,6 +37,9 @@ schedule.scheduleJob(`*/${jobTime} * * * *`, function() {
     });
     // Watch resolved markets
     watchResolvedMarketsEvent(fromBlock);
+
+    // Watch Realitio events
+    findLogNotifyOfArbitrationRequestArbitration(fromBlock);
 });
 
 console.log(`Configure to find trade, liquidity events and market ready to be resolved for every ${jobTime} minutes`);
@@ -46,10 +50,10 @@ findTradeEvents(timestamp, pastTimeInSeconds);
 findLiquidityEvents(timestamp, pastTimeInSeconds);
 schedule.scheduleJob(`*/${jobTime} * * * *`, function() {
     const timestamp = Math.floor(Date.now() / 1000);
+    // Find sell/buy Trade
     findTradeEvents(timestamp, pastTimeInSeconds);
+    // Find added/removed Liquidity
     findLiquidityEvents(timestamp, pastTimeInSeconds);
     // Find markets ready to be resolved
     findMarketReadyByQuestionOpeningTimestamp(timestamp, pastTimeInSeconds);
-    // Find markets is pending arbitration
-    findMarketIsPendingArbitration(timestamp);
 });

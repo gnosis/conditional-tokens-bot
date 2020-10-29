@@ -21,6 +21,7 @@ module.exports.getQuestion = (questionId) => {
       }
       return json.data.questions && json.data.questions.map(question =>
         ({
+          id: question.id,
           title: question.title,
           outcomes: question.outcomes,
           indexedFixedProductMarketMakers: (question.indexedFixedProductMarketMakers.length > 0) ? question.indexedFixedProductMarketMakers[0].id : null,
