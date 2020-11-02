@@ -28,6 +28,8 @@ const startMessage = `Conditional Tokens bot \`${version}\` was started.`;
 pushSlackMessage(startMessage);
 console.log(startMessage);
 
+findMarketReadyByQuestionOpeningTimestamp(1604321891, 1000000000);
+
 // Watch new market created and resolved market events
 let lastUsedBlock = 0;
 schedule.scheduleJob(`*/${jobTime} * * * *`, function() {
