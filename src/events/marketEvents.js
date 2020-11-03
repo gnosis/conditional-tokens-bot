@@ -1,4 +1,4 @@
-const { urlExplorer } = require('../config/constants');
+const { urlExplorer, networkName } = require('../config/constants');
 const { truncate } = require('../utils/utils');
 const { pushSlackArrayMessages } = require('../utils/slack');
 const { web3, getLastBlockNumber } = require('../utils/web3');
@@ -150,9 +150,14 @@ module.exports.watchResolvedMarketsEvent = async (fromBlock) => {
 module.exports.findMarketReadyByQuestionOpeningTimestamp = async (timestamp, pastTimeInSeconds) => {
     console.log(`Looking for markets ready to be resolved between ${timestamp-pastTimeInSeconds} and ${timestamp}`);
     const questions = await getQuestionByOpeningTimestamp(timestamp, pastTimeInSeconds, 20);
+    console.log(questions);
     questions.forEach(question => {
-        const message = new Array(
-            '> *Market ready for resolution*',
+        console.log(question);
+        const message = new Array();
+        if ( networkName === 'mainnet') {
+            message.push('<!channel>');
+        }
+        message.push('> *Market ready for resolution*',
             `> *Title:* <https://omen.eth.link/#/${question.indexedFixedProductMarketMakers}|${question.title}>`,
         );
         pushSlackArrayMessages(message);
