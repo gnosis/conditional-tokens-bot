@@ -12,7 +12,7 @@ const fetch = require('node-fetch');
  * @returns a FPMM Trade list with the ffpm addres and the outcomes.
  */
 module.exports.getTrade = (creationTimestamp, seconds, limit) => {
-  const jsonQuery = { query: `{fpmmTrades(first: ${limit}, where: { creationTimestamp_gt: \"${creationTimestamp-seconds}\", creationTimestamp_lte: \"${creationTimestamp}\" }, orderBy: creationTimestamp, orderDirection: desc) { id fpmm { id outcomes outcomeTokenMarginalPrices } creator { id } title collateralToken collateralAmount collateralAmountUSD feeAmount type creationTimestamp outcomeIndex outcomeTokensTraded }}` }
+  const jsonQuery = { query: `{fpmmTrades(first: ${limit}, where: { creationTimestamp_gt: \"${creationTimestamp-seconds}\", creationTimestamp_lte: \"${creationTimestamp}\" }, orderBy: creationTimestamp, orderDirection: desc) { id fpmm { id outcomes } creator { id } title collateralToken outcomeTokenMarginalPrice oldOutcomeTokenMarginalPrice collateralAmount collateralAmountUSD feeAmount type creationTimestamp outcomeIndex outcomeTokensTraded transactionHash }}` }
 
   const promise = fetch(process.env.THE_GRAPH_OMEN, {
     headers: {'Content-Type': 'application/json'},
@@ -28,9 +28,12 @@ module.exports.getTrade = (creationTimestamp, seconds, limit) => {
       ({
         id: trade.id,
         fpmm: trade.fpmm.id,
+        outcomes: trade.fpmm.outcomes,
         title: trade.title,
         collateralToken: trade.collateralToken,
         collateralAmount: trade.collateralAmount,
+        outcomeTokenMarginalPrice: trade.outcomeTokenMarginalPrice,
+        oldOutcomeTokenMarginalPrice: trade.oldOutcomeTokenMarginalPrice,
         collateralAmountUSD: trade.collateralAmountUSD,
         feeAmount: trade.feeAmount,
         type: trade.type,
@@ -38,8 +41,7 @@ module.exports.getTrade = (creationTimestamp, seconds, limit) => {
         creationTimestamp: trade.creationTimestamp,
         outcomeIndex: trade.outcomeIndex,
         outcomeTokensTraded: trade.outcomeTokensTraded,
-        outcomes: trade.fpmm.outcomes,
-        outcomeTokenMarginalPrices: trade.fpmm.outcomeTokenMarginalPrices
+        transactionHash: trade.transactionHash,
       })
     );
   });
