@@ -27,21 +27,8 @@ const startMessage = `Conditional Tokens bot \`${packageJson.version}\` was star
 pushSlackMessage(startMessage);
 console.log(startMessage);
 
-// Watch new market created and resolved market events
-let lastUsedBlock = 0;
-schedule.scheduleJob(`*/${jobTime} * * * *`, function() {
-    const fromBlock = lastUsedBlock ? lastUsedBlock : 0;
-    watchCreationMarketsEvent(fromBlock).then(toBlock => {
-        lastUsedBlock = toBlock;
-    });
-    // Watch resolved markets
-    watchResolvedMarketsEvent(fromBlock);
-
-    // Watch Realitio events
-    findLogNotifyOfArbitrationRequestArbitration(fromBlock);
-});
-
-console.log(`Configure to find trade, liquidity events and market ready to be resolved for every ${jobTime} minutes`);
+console.log(`Configure to find events every ${jobTime} minutes`);
+let fromBlock = 0;
 const pastTimeInSeconds = jobTime * 60;
 schedule.scheduleJob(`*/${jobTime} * * * *`, async () => {
     // Calculate from and to bock numbers
