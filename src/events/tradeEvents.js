@@ -1,7 +1,6 @@
-const { urlExplorer } = require('../config/constants');
 const { truncate } = require('../utils/utils');
 const { pushSlackArrayMessages } = require('../utils/slack');
-const { web3 } = require('../utils/web3');
+const { getUrlExplorer, web3 } = require('../utils/web3');
 const { getTokenName, getTokenDecimals } = require('../services/contractERC20');
 const { getTrade, getOldTrade } = require('../services/getTrade');
 
@@ -15,7 +14,9 @@ const { getTrade, getOldTrade } = require('../services/getTrade');
  */
 module.exports.findTradeEvents = async (timestamp, pastTimeInSeconds) => {
     console.log(`Looking for new trades at ${timestamp}`);
-    const trades = await getTrade(timestamp, pastTimeInSeconds, 20)
+    const trades = await getTrade(timestamp, pastTimeInSeconds, 20);
+    const urlExplorer = await getUrlExplorer();
+
     for (const trade of trades) {
         const message = new Array();
         const type = (trade.type === 'Buy') ? 'purchased' : 'sold';
@@ -29,7 +30,7 @@ module.exports.findTradeEvents = async (timestamp, pastTimeInSeconds) => {
         }
         const oldOdds = (oldTrade && oldTrade.outcomeTokenMarginalPrices) ? parseFloat(oldTrade.outcomeTokenMarginalPrices[trade.outcomeIndex] * 100 ).toFixed(2) : '0.00';
         const outcome = trade.outcomes ? trade.outcomes[trade.outcomeIndex] : trade.outcomeIndex;
-        message.push(`> ${amount} <https://${urlExplorer}/token/${trade.collateralToken}|${tokenName}> of *${outcome}* ${type} in "<https://omen.eth.link/#/${trade.fpmm}|${trade.title}>".`,
+        message.push(`> ${amount} <${urlExplorer}/token/${trade.collateralToken}|${tokenName}> of *${outcome}* ${type} in "<https://omen.eth.link/#/${trade.fpmm}|${trade.title}>".`,
             `> Outcome odds: ${oldOdds}% --> ${odds}%`,
             `> *Created by*: <https://omen.eth.link/#/${trade.creator}|${truncate(trade.creator, 14)}>`,
         );

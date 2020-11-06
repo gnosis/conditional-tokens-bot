@@ -1,3 +1,4 @@
+const { blockReorgLimit } = require('../config');
 const { pushSlackArrayMessages } = require('../utils/slack');
 const { web3, getLastBlockNumber } = require('../utils/web3');
 const { getRealitioContract } = require('../services/contractEvents');
@@ -42,10 +43,11 @@ const getRealitioLogNotifyOfArbitrationRequestEvent = async (fromBlock, toBlock)
  * @param fromBlock 
  */
 module.exports.findLogNotifyOfArbitrationRequestArbitration = async (fromBlock) => {
+    const lastBlock = await getLastBlockNumber();
     if (fromBlock === 0) {
-        fromBlock = await getLastBlockNumber() - 10;
+        fromBlock = lastBlock - (blockReorgLimit * 2);
     }
-    const toBlock = await getLastBlockNumber() - 5;
+    const toBlock = lastBlock - blockReorgLimit;
     getRealitioLogNotifyOfArbitrationRequestEvent(fromBlock, toBlock);
     return (toBlock + 1);
 }

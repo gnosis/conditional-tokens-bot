@@ -1,9 +1,8 @@
-const { urlExplorer } = require('../config/constants');
 const { truncate } = require('../utils/utils');
 const { pushSlackArrayMessages } = require('../utils/slack');
 const { getTokenName, getTokenSymbol, getTokenDecimals } = require('../services/contractERC20');
 const { getLiquidity } = require('../services/getLiquidity');
-const { web3 } = require('../utils/web3');
+const { getUrlExplorer, web3 } = require('../utils/web3');
 
 /**
  * Look for last FPMM liquidity records ordered by `creationTimestamp`.
@@ -15,6 +14,8 @@ const { web3 } = require('../utils/web3');
  */
 module.exports.findLiquidityEvents = async (timestamp, pastTimeInSeconds) => {
     console.log(`Looking for new liquidity at ${timestamp}`);
+    const urlExplorer = await getUrlExplorer();
+
     getLiquidity(timestamp, pastTimeInSeconds, 20)
         .then(liquidities => {
             liquidities.forEach(liquidity => {
@@ -27,7 +28,7 @@ module.exports.findLiquidityEvents = async (timestamp, pastTimeInSeconds) => {
                     .then(([tokenName, tokenSymbol, decimals]) => {
                         const type = (liquidity.type === 'Add') ? 'added' : 'removed';
                         const amount = parseFloat(liquidity.collateralTokenAmount / 10**decimals).toFixed(2);
-                        message.push(`> ${amount} <https://${urlExplorer}/token/${liquidity.collateralToken}|${tokenName}> of liquidity ${type} in "*<https://omen.eth.link/#/${liquidity.fpmm}|${liquidity.title}>*", total liquidity is now *${liquidity.scaledLiquidityParameter} ${tokenSymbol}*.`,
+                        message.push(`> ${amount} <${urlExplorer}/token/${liquidity.collateralToken}|${tokenName}> of liquidity ${type} in "*<https://omen.eth.link/#/${liquidity.fpmm}|${liquidity.title}>*", total liquidity is now *${liquidity.scaledLiquidityParameter} ${tokenSymbol}*.`,
                             `> *Created by*: <https://omen.eth.link/#/${liquidity.funder}|${truncate(liquidity.funder, 14)}>`,
                         );
                         // Send Slack notification
