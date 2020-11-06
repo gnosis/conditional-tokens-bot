@@ -27,7 +27,6 @@ const startMessage = `Conditional Tokens bot \`${packageJson.version}\` was star
 pushSlackMessage(startMessage);
 console.log(startMessage);
 
-
 // Watch new market created and resolved market events
 let lastUsedBlock = 0;
 schedule.scheduleJob(`*/${jobTime} * * * *`, function() {

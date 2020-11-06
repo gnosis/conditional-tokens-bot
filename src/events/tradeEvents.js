@@ -36,6 +36,7 @@ module.exports.findTradeEvents = async (timestamp, pastTimeInSeconds) => {
         );
         // Send Slack notification
         pushSlackArrayMessages(message);
+        console.log(trade.creationTimestamp);
         console.log(message.join('\n') + '\n');
     }
 }
