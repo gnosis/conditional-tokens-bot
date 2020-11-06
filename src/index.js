@@ -2,12 +2,11 @@ const express = require("express");
 const schedule = require('node-schedule');
 
 const packageJson = require('../package.json');
-const { port, jobTime } = require('./config');
+const { port, jobTime, blockReorgLimit, averageBlockTime } = require('./config');
 const { pushSlackMessage } = require('./utils/slack');
 const { watchCreationMarketsEvent, 
     watchResolvedMarketsEvent, 
-    findMarketReadyByQuestionOpeningTimestamp,
-    findMarketIsPendingArbitration } = require('./events/marketEvents');
+    findMarketReadyByQuestionOpeningTimestamp } = require('./events/marketEvents');
 const { findLogNotifyOfArbitrationRequestArbitration } = require('./events/realitioEvents');
 const { findTradeEvents } = require('./events/tradeEvents');
 const { findLiquidityEvents } = require('./events/liquidityEvents');
@@ -28,32 +27,22 @@ const startMessage = `Conditional Tokens bot \`${version}\` was started.`;
 pushSlackMessage(startMessage);
 console.log(startMessage);
 
-// Watch new market created and resolved market events
-let lastUsedBlock = 0;
-schedule.scheduleJob(`*/${jobTime} * * * *`, function() {
-    const fromBlock = lastUsedBlock ? lastUsedBlock : 0;
-    watchCreationMarketsEvent(fromBlock).then(toBlock => {
-        lastUsedBlock = toBlock;
-    });
-    // Watch resolved markets
-    watchResolvedMarketsEvent(fromBlock);
-
-    // Watch Realitio events
-    findLogNotifyOfArbitrationRequestArbitration(fromBlock);
-});
-
-console.log(`Configure to find trade, liquidity events and market ready to be resolved for every ${jobTime} minutes`);
+console.log(`Configure to find events every ${jobTime} minutes`);
+let fromBlock = 0;
 const pastTimeInSeconds = jobTime * 60;
+schedule.scheduleJob(`*/${jobTime} * * * *`, async () => {
+        // Watch creation market events
+        fromBlock = await watchCreationMarketsEvent(fromBlock);
+        // Watch resolved market events
+        await watchResolvedMarketsEvent(fromBlock);
+        // Watch Reality.eth events
+        await findLogNotifyOfArbitrationRequestArbitration(fromBlock);
 
-const timestamp = Math.floor(Date.now() / 1000);
-findTradeEvents(timestamp, pastTimeInSeconds);
-findLiquidityEvents(timestamp, pastTimeInSeconds);
-schedule.scheduleJob(`*/${jobTime} * * * *`, function() {
-    const timestamp = Math.floor(Date.now() / 1000);
-    // Find sell/buy Trade
-    findTradeEvents(timestamp, pastTimeInSeconds);
-    // Find added/removed Liquidity
-    findLiquidityEvents(timestamp, pastTimeInSeconds);
-    // Find markets ready to be resolved
-    findMarketReadyByQuestionOpeningTimestamp(timestamp, pastTimeInSeconds);
+        const timestamp = Math.floor(Date.now() / 1000) - (blockReorgLimit * averageBlockTime);
+        // Find sell/buy Trades
+        await findTradeEvents(timestamp, pastTimeInSeconds);
+        // Find added/removed Liquidities
+        await findLiquidityEvents(timestamp, pastTimeInSeconds);
+        // Find markets ready to be resolved
+        await findMarketReadyByQuestionOpeningTimestamp(timestamp, pastTimeInSeconds);
 });
