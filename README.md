@@ -6,8 +6,9 @@ The bot supports `mainnet` and `rinkeby` Ethereum networks.
 
 ## Configure
 
-- **NETWORK_NAME**: THe Ethereum network name.
 - **ETH_NODE**: The Ethereum websocket to watch contracts.
+- **BLOCK_REORG_LIMIT**: Previous number of blocks to process to avoid reorgs.
+- **AVERAGE_BLOCK_TIME**: Average block time to look for previous blocks on timestamp queries.
 - **CT_ADDRESS**: The Conditional Tokens contract address for resolved markets events.
 - **FIXED_PRODUCT_MM_FACTORY_ADDRESS**: The Fixed Product Market Maker factory contract address for new markets creation events.
 - **REALITIO_CONTRACT_ADDRESS**: The Realitio contract address for arbitration requests notification events.
