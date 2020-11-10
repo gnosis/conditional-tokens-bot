@@ -1,7 +1,7 @@
-const { urlExplorer, networkName } = require('../config/constants');
+const { blockReorgLimit } = require('../config');
 const { truncate } = require('../utils/utils');
 const { pushSlackArrayMessages } = require('../utils/slack');
-const { web3, getLastBlockNumber } = require('../utils/web3');
+const { getChainId, getLastBlockNumber, getUrlExplorer, web3 } = require('../utils/web3');
 const { getFixedProductionMarketMakerFactoryContract, getconditionalTokensContract } = require('../services/contractEvents');
 const { getTokenName, getTokenSymbol } = require('../services/contractERC20');
 const { getQuestion, getQuestionByOpeningTimestamp } = require('../services/getQuestion');
@@ -20,6 +20,7 @@ const conditionalTokensContract = getconditionalTokensContract(web3);
  */
 const getFPMMCreationEvent = async (fromBlock, toBlock) => {
     console.log(`Watching market creation events from ${fromBlock} to ${toBlock} block.`);
+    const urlExplorer = await getUrlExplorer();
 
     fixedProductMarketMakerFactoryContract.getPastEvents('FixedProductMarketMakerCreation', {
         filter: {},
@@ -58,9 +59,9 @@ const getFPMMCreationEvent = async (fromBlock, toBlock) => {
                                                 }
                                         })));
                                     }
-                                    message.push(`> *Collateral*: <https://${urlExplorer}/token/${event.returnValues.collateralToken}|${tokenName}>`,
+                                    message.push(`> *Collateral*: <${urlExplorer}/token/${event.returnValues.collateralToken}|${tokenName}>`,
                                         `> *Liquidity*: ${parseFloat(condition.scaledLiquidityParameter).toFixed(2)} ${tokenSymbol}`,
-                                        `> *Created by*: <https://${urlExplorer}/address/${transaction.from}|${truncate(transaction.from, 14)}>`);
+                                        `> *Created by*: <${urlExplorer}/address/${transaction.from}|${truncate(transaction.from, 14)}>`);
                                         // Send Slack notification
                                     pushSlackArrayMessages(message);
                                     console.log(event.returnValues.conditionIds[0] + ':\n' + message.join('\n') + '\n\n');
@@ -120,10 +121,11 @@ const getResolvedMarketsEvents = async (fromBlock, toBlock) => {
  * @param fromBlock
  */
 module.exports.watchCreationMarketsEvent = async (fromBlock) => {
+    const lastBlock = await getLastBlockNumber();
     if (fromBlock === 0) {
-        fromBlock = await getLastBlockNumber() - 10;
+        fromBlock = lastBlock - (blockReorgLimit * 2);
     }
-    const toBlock = await getLastBlockNumber() - 5;
+    const toBlock = lastBlock - blockReorgLimit;
     getFPMMCreationEvent(fromBlock, toBlock);
     return (toBlock + 1);
 }
@@ -133,10 +135,11 @@ module.exports.watchCreationMarketsEvent = async (fromBlock) => {
  * @param fromBlock
  */
 module.exports.watchResolvedMarketsEvent = async (fromBlock) => {
+    const lastBlock = await getLastBlockNumber();
     if (fromBlock === 0) {
-        fromBlock = await getLastBlockNumber() - 10;
+        fromBlock = lastBlock - (blockReorgLimit * 2);
     }
-    const toBlock = await getLastBlockNumber() - 5;
+    const toBlock = lastBlock - blockReorgLimit;
     getResolvedMarketsEvents(fromBlock, toBlock);
     return (toBlock + 1);
 }
@@ -150,11 +153,11 @@ module.exports.watchResolvedMarketsEvent = async (fromBlock) => {
 module.exports.findMarketReadyByQuestionOpeningTimestamp = async (timestamp, pastTimeInSeconds) => {
     console.log(`Looking for markets ready to be resolved between ${timestamp-pastTimeInSeconds} and ${timestamp}`);
     const questions = await getQuestionByOpeningTimestamp(timestamp, pastTimeInSeconds, 20);
-    console.log(questions);
+    const chainId = await getChainId();
+
     questions.forEach(question => {
-        console.log(question);
         const message = new Array();
-        if ( networkName === 'mainnet') {
+        if (chainId === 1) {
             message.push('<!channel>');
         }
         message.push('> *Market ready for resolution*',
