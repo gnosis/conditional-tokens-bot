@@ -92,27 +92,29 @@ const getResolvedMarketsEvents = async (fromBlock, toBlock) => {
         fromBlock,
         toBlock,
     }, (error, events) => {
-        events.forEach(event => {
-            (async () => {
-                const questions = await getQuestion(event.returnValues.questionId);
-                if (questions.length > 0) {
-                    const message = new Array(
-                        '> *Market resolved*',
-                        `> *Title:* <https://omen.eth.link/#/${questions[0].indexedFixedProductMarketMakers}|${questions[0].title}>`,
-                        `> *Answer:*`,
-                    );
-                    event.returnValues.payoutNumerators.forEach((payout, index) => {
-                        if(payout === '1') {
-                            message.push(`> - ${questions[0].outcomes[index]}`);
-                        }
-                    });
-                    pushSlackArrayMessages(message);
-                    console.log(event.returnValues.questionId + ':\n' + message.join('\n') + '\n\n');
-                } else {
-                    console.error(`ERROR: Question for hex "${event.returnValues.questionId}" not found on Omen subgraph.`);
-                }
-            })();
-        });
+        if (events) {
+            for(const event of events) {
+                (async () => {
+                    const questions = await getQuestion(event.returnValues.questionId);
+                    if (questions.length > 0) {
+                        const message = new Array(
+                            '> *Market resolved*',
+                            `> *Title:* <https://omen.eth.link/#/${questions[0].indexedFixedProductMarketMakers}|${questions[0].title}>`,
+                            `> *Answer:*`,
+                        );
+                        event.returnValues.payoutNumerators.forEach((payout, index) => {
+                            if(payout === '1') {
+                                message.push(`> - ${questions[0].outcomes[index]}`);
+                            }
+                        });
+                        pushSlackArrayMessages(message);
+                        console.log(event.returnValues.questionId + ':\n' + message.join('\n') + '\n\n');
+                    } else {
+                        console.error(`ERROR: Question for hex "${event.returnValues.questionId}" not found on Omen subgraph.`);
+                    }
+                })();
+            }
+        }
     });
 }
 
@@ -137,7 +139,7 @@ module.exports.watchCreationMarketsEvent = async (fromBlock) => {
 module.exports.watchResolvedMarketsEvent = async (fromBlock) => {
     const lastBlock = await getLastBlockNumber();
     if (fromBlock === 0) {
-        fromBlock = lastBlock - (blockReorgLimit * 2);
+        fromBlock = lastBlock - 10000000000;
     }
     const toBlock = lastBlock - blockReorgLimit;
     getResolvedMarketsEvents(fromBlock, toBlock);
