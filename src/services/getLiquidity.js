@@ -12,7 +12,7 @@ const fetch = require('node-fetch');
  * @returns a FPMM liquidity list with the ffpm and funder addresses.
  */
 module.exports.getLiquidity = (creationTimestamp, seconds, limit) => {
-  const jsonQuery = { query: `{fpmmLiquidities(first: ${limit}, where: { creationTimestamp_gt: \"${creationTimestamp-seconds}\", creationTimestamp_lte: \"${creationTimestamp}\" }, orderBy: creationTimestamp, orderDirection: desc) { id fpmm { id title scaledLiquidityParameter collateralToken } funder { id } type outcomeTokenAmounts collateralTokenAmount additionalLiquidityParameter sharesAmount collateralRemovedFromFeePool creationTimestamp }}` };
+  const jsonQuery = { query: `{fpmmLiquidities(first: ${limit}, where: { creationTimestamp_gt: \"${creationTimestamp-seconds}\", creationTimestamp_lte: \"${creationTimestamp}\" }, orderBy: creationTimestamp, orderDirection: desc) { id fpmm { id title scaledLiquidityParameter collateralToken } funder { id } type outcomeTokenAmounts collateralTokenAmount additionalLiquidityParameter sharesAmount collateralRemovedFromFeePool creationTimestamp transactionHash }}` };
   const promise = fetch(process.env.THE_GRAPH_OMEN, {
     headers: {'Content-Type': 'application/json'},
     body: JSON.stringify(jsonQuery),
@@ -38,6 +38,7 @@ module.exports.getLiquidity = (creationTimestamp, seconds, limit) => {
         sharesAmount: liquidity.sharesAmount,
         collateralRemovedFromFeePool: liquidity.collateralRemovedFromFeePool,
         creationTimestamp: liquidity.creationTimestamp,
+        transactionHash: liquidity.transactionHash,
       })
     );
   });

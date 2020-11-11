@@ -20,22 +20,23 @@ module.exports.findTradeEvents = async (timestamp, pastTimeInSeconds) => {
     for (const trade of trades) {
         const message = new Array();
         const type = (trade.type === 'Buy') ? 'purchased' : 'sold';
-        const odds = parseFloat(trade.outcomeTokenMarginalPrices[trade.outcomeIndex] * 100 ).toFixed(2);
+        const odds = parseFloat(trade.outcomeTokenMarginalPrice * 100).toFixed(2);
+        const oldOdds = parseFloat(trade.oldOutcomeTokenMarginalPrice * 100).toFixed(2);
         const tokenName = await getTokenName(web3, trade.collateralToken);
         const decimals = await getTokenDecimals(web3, trade.collateralToken);
-        const oldTrade = await getOldTrade(trade.fpmm, trade.id, trade.creationTimestamp);
         const amount = parseFloat(trade.collateralAmount / 10**decimals).toFixed(2);
         if (trade.collateralAmountUSD > 1000.00) {
             message.push('<!here>');
         }
-        const oldOdds = (oldTrade && oldTrade.outcomeTokenMarginalPrices) ? parseFloat(oldTrade.outcomeTokenMarginalPrices[trade.outcomeIndex] * 100 ).toFixed(2) : '0.00';
         const outcome = trade.outcomes ? trade.outcomes[trade.outcomeIndex] : trade.outcomeIndex;
         message.push(`> ${amount} <${urlExplorer}/token/${trade.collateralToken}|${tokenName}> of *${outcome}* ${type} in "<https://omen.eth.link/#/${trade.fpmm}|${trade.title}>".`,
             `> Outcome odds: ${oldOdds}% --> ${odds}%`,
             `> *Created by*: <https://omen.eth.link/#/${trade.creator}|${truncate(trade.creator, 14)}>`,
+            `> *Transaction*: <https://${urlExplorer}/tx/${trade.transactionHash}|${truncate(trade.transactionHash, 14)}>`,
         );
         // Send Slack notification
         pushSlackArrayMessages(message);
+        console.log(trade.creationTimestamp);
         console.log(message.join('\n') + '\n');
     }
 }
