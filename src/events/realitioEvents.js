@@ -1,3 +1,4 @@
+const { escapeHTML } = require('../utils/utils');
 const { pushSlackArrayMessages } = require('../utils/slack');
 const { web3 } = require('../utils/web3');
 const { getRealitioContract } = require('../services/contractEvents');
@@ -30,7 +31,7 @@ module.exports.watchLogNotifyOfArbitrationRequestArbitration = async (fromBlock,
                     questions.forEach(question => {
                         const message = new Array(
                             '> *Market is in arbitration*',
-                            `> *Title:* <https://omen.eth.link/#/${question.indexedFixedProductMarketMakers}|${question.title}>`,
+                            `> *Title:* <https://omen.eth.link/#/${question.indexedFixedProductMarketMakers}|${escapeHTML(question.title)}>`,
                         );
                         pushSlackArrayMessages(message);
                         console.log(question.id + ':\n' + message.join('\n') + '\n\n');

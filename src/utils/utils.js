@@ -23,6 +23,13 @@ const truncate = (fullStr, strLen, separator) => {
            fullStr.substr(fullStr.length - backChars);
 };
 
+const escapeHTML = str => str.replace(/[<>]/g, 
+  tag => ({
+      '<': '&lt;',
+      '>': '&gt;',
+    }[tag]));
+
 module.exports = {
     truncate,
+    escapeHTML,
 }

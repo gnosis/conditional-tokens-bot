@@ -1,4 +1,4 @@
-const { truncate } = require('../utils/utils');
+const { truncate, escapeHTML } = require('../utils/utils');
 const { pushSlackArrayMessages } = require('../utils/slack');
 const { getChainId, getUrlExplorer, web3 } = require('../utils/web3');
 const { getFixedProductionMarketMakerFactoryContract, getconditionalTokensContract } = require('../services/contractEvents');
@@ -47,13 +47,13 @@ module.exports.watchCreationMarketsEvent = async (fromBlock, toBlock) => {
                                             console.error(`ERROR: Question for hex "${condition.questionId}" not found on contition ID ${event.returnValues.conditionIds[0]}`);
                                         } else {
                                             message.push(questions.map(question => {
-                                                return `> *<https://omen.eth.link/#/${condition.fixedProductMarketMakers}|${question.title}>*\n> *Outcomes:*`;
+                                                return `> *<https://omen.eth.link/#/${condition.fixedProductMarketMakers}|${escapeHTML(question.title)}>*\n> *Outcomes:*`;
                                             }));
                                             message.push(
                                                 (questions.map(question => {
                                                     if (condition.outcomeTokenMarginalPrices) {
                                                             return question.outcomes.map((outcome, i) =>
-                                                                `> \`${(parseFloat(condition.outcomeTokenMarginalPrices[i]) * 100 )
+                                                                `\`${(parseFloat(condition.outcomeTokenMarginalPrices[i]) * 100 )
                                                                     .toFixed(2)}%\` - ${outcome}`
                                                             );
                                                     } else {
@@ -63,7 +63,8 @@ module.exports.watchCreationMarketsEvent = async (fromBlock, toBlock) => {
                                         }
                                         message.push(`> *Collateral*: <${urlExplorer}/token/${event.returnValues.collateralToken}|${tokenName}>`,
                                             `> *Liquidity*: ${parseFloat(condition.scaledLiquidityParameter).toFixed(2)} ${tokenSymbol}`,
-                                            `> *Created by*: <${urlExplorer}/address/${transaction.from}|${truncate(transaction.from, 14)}>`);
+                                            `> *Created by*: <${urlExplorer}/address/${transaction.from}|${truncate(transaction.from, 14)}>`,
+                                            `> *Transaction*: <${urlExplorer}/tx/${transaction.hash}|${truncate(transaction.hash, 14)}>`);
                                             // Send Slack notification
                                         pushSlackArrayMessages(message);
                                         console.log(event.returnValues.conditionIds[0] + ':\n' + message.join('\n') + '\n\n');
@@ -104,7 +105,7 @@ module.exports.watchResolvedMarketsEvent = async (fromBlock, toBlock) => {
                     if (questions.length > 0) {
                         const message = new Array(
                             '> *Market resolved*',
-                            `> *Title:* <https://omen.eth.link/#/${questions[0].indexedFixedProductMarketMakers}|${questions[0].title}>`,
+                            `> *Title:* <https://omen.eth.link/#/${questions[0].indexedFixedProductMarketMakers}|${escapeHTML(questions[0].title)}>`,
                             `> *Answer:*`,
                         );
                         event.returnValues.payoutNumerators.forEach((payout, index) => {
@@ -140,7 +141,7 @@ module.exports.findMarketReadyByQuestionOpeningTimestamp = async (timestamp, pas
             message.push('<!channel>');
         }
         message.push('> *Market ready for resolution*',
-            `> *Title:* <https://omen.eth.link/#/${question.indexedFixedProductMarketMakers}|${question.title}>`,
+            `> *Title:* <https://omen.eth.link/#/${question.indexedFixedProductMarketMakers}|${escapeHTML(question.title)}>`,
         );
         pushSlackArrayMessages(message);
         console.log(question.id + ':\n' + message.join('\n') + '\n\n');
