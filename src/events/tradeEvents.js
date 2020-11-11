@@ -1,4 +1,4 @@
-const { truncate } = require('../utils/utils');
+const { truncate, escapeHTML } = require('../utils/utils');
 const { pushSlackArrayMessages } = require('../utils/slack');
 const { getUrlExplorer, web3 } = require('../utils/web3');
 const { getTokenName, getTokenDecimals } = require('../services/contractERC20');
@@ -29,10 +29,10 @@ module.exports.findTradeEvents = async (timestamp, pastTimeInSeconds) => {
             message.push('<!here>');
         }
         const outcome = trade.outcomes ? trade.outcomes[trade.outcomeIndex] : trade.outcomeIndex;
-        message.push(`> ${amount} <${urlExplorer}/token/${trade.collateralToken}|${tokenName}> of *${outcome}* ${type} in "<https://omen.eth.link/#/${trade.fpmm}|${trade.title}>".`,
+        message.push(`> ${amount} <${urlExplorer}/token/${trade.collateralToken}|${tokenName}> of *${outcome}* ${type} in "<https://omen.eth.link/#/${trade.fpmm}|${escapeHTML(trade.title)}>".`,
             `> Outcome odds: ${oldOdds}% --> ${odds}%`,
             `> *Created by*: <https://omen.eth.link/#/${trade.creator}|${truncate(trade.creator, 14)}>`,
-            `> *Transaction*: <https://${urlExplorer}/tx/${trade.transactionHash}|${truncate(trade.transactionHash, 14)}>`,
+            `> *Transaction*: <${urlExplorer}/tx/${trade.transactionHash}|${truncate(trade.transactionHash, 14)}>`,
         );
         // Send Slack notification
         pushSlackArrayMessages(message);
