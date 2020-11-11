@@ -21,8 +21,6 @@ const getUrlExplorer = async () => {
     const explorer = 'etherscan.io';
     const chainId = await getChainId();
 
-    console.log(`netwrok id ${chainId}`);
-
     switch (chainId) {
         case 1: return `${protocol}://${explorer}`;
             break;

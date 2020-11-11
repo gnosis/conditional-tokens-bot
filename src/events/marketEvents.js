@@ -1,7 +1,6 @@
-const { blockReorgLimit } = require('../config');
 const { truncate } = require('../utils/utils');
 const { pushSlackArrayMessages } = require('../utils/slack');
-const { getChainId, getLastBlockNumber, getUrlExplorer, web3 } = require('../utils/web3');
+const { getChainId, getUrlExplorer, web3 } = require('../utils/web3');
 const { getFixedProductionMarketMakerFactoryContract, getconditionalTokensContract } = require('../services/contractEvents');
 const { getTokenName, getTokenSymbol } = require('../services/contractERC20');
 const { getQuestion, getQuestionByOpeningTimestamp } = require('../services/getQuestion');
@@ -11,14 +10,14 @@ const fixedProductMarketMakerFactoryContract = getFixedProductionMarketMakerFact
 const conditionalTokensContract = getconditionalTokensContract(web3);
 
 /**
- * Get `FixedProductMarketMakerCreation` events from a `FixedProductionMarketMakerFactory` contract.
+ * Watch `FixedProductMarketMakerCreation` events from a `FixedProductionMarketMakerFactory` contract.
  * @param  fromBlock
  * @param  toBlock
  * on the `returnValues` values like an array with the `conditionIds`,
  * and the `collateralToken`.
  * 
  */
-const getFPMMCreationEvent = async (fromBlock, toBlock) => {
+module.exports.watchCreationMarketsEvent = async (fromBlock, toBlock) => {
     console.log(`Watching market creation events from ${fromBlock} to ${toBlock} block.`);
     const urlExplorer = await getUrlExplorer();
 
@@ -27,54 +26,58 @@ const getFPMMCreationEvent = async (fromBlock, toBlock) => {
         fromBlock,
         toBlock,
     }, (error, events) => {
-        events.forEach(event => {
-            (async () => {
-                const message = new Array('<!here>', '*New market created!* :tada:');
-                //TODO support conditional markets
-                Promise.all([
-                    getCondition(event.returnValues.conditionIds[0]),
-                    web3.eth.getTransaction(event.transactionHash),
-                    getTokenName(web3, event.returnValues.collateralToken), 
-                    getTokenSymbol(web3, event.returnValues.collateralToken), 
-                ])
-                    .then(([conditions, transaction, tokenName, tokenSymbol]) => {
-                        conditions.forEach(condition => {
-                            getQuestion(condition.questionId)
-                                .then((questions) => {
-                                    if (questions.length == 0) {
-                                        console.error(`ERROR: Question for hex "${condition.questionId}" not found on contition ID ${event.returnValues.conditionIds[0]}`);
-                                    } else {
-                                        message.push(questions.map(question => {
-                                            return `> *<https://omen.eth.link/#/${condition.fixedProductMarketMakers}|${question.title}>*\n> *Outcomes:*`;
-                                        }));
-                                        message.push(
-                                            (questions.map(question => {
-                                                if (condition.outcomeTokenMarginalPrices) {
-                                                        return question.outcomes.map((outcome, i) =>
-                                                            `> \`${(parseFloat(condition.outcomeTokenMarginalPrices[i]) * 100 )
-                                                                .toFixed(2)}%\` - ${outcome}`
-                                                        );
-                                                } else {
-                                                        return question.outcomes.map(outcome => `> - ${outcome}`);
-                                                }
-                                        })));
-                                    }
-                                    message.push(`> *Collateral*: <${urlExplorer}/token/${event.returnValues.collateralToken}|${tokenName}>`,
-                                        `> *Liquidity*: ${parseFloat(condition.scaledLiquidityParameter).toFixed(2)} ${tokenSymbol}`,
-                                        `> *Created by*: <${urlExplorer}/address/${transaction.from}|${truncate(transaction.from, 14)}>`);
-                                        // Send Slack notification
-                                    pushSlackArrayMessages(message);
-                                    console.log(event.returnValues.conditionIds[0] + ':\n' + message.join('\n') + '\n\n');
-                                });
+        if (error) {
+            console.error(error);
+        } else {        
+            for(const event of events) {
+                (async () => {
+                    const message = new Array('<!here>', '*New market created!* :tada:');
+                    //TODO support conditional markets
+                    Promise.all([
+                        getCondition(event.returnValues.conditionIds[0]),
+                        web3.eth.getTransaction(event.transactionHash),
+                        getTokenName(web3, event.returnValues.collateralToken), 
+                        getTokenSymbol(web3, event.returnValues.collateralToken), 
+                    ])
+                        .then(([conditions, transaction, tokenName, tokenSymbol]) => {
+                            conditions.forEach(condition => {
+                                getQuestion(condition.questionId)
+                                    .then((questions) => {
+                                        if (questions.length == 0) {
+                                            console.error(`ERROR: Question for hex "${condition.questionId}" not found on contition ID ${event.returnValues.conditionIds[0]}`);
+                                        } else {
+                                            message.push(questions.map(question => {
+                                                return `> *<https://omen.eth.link/#/${condition.fixedProductMarketMakers}|${question.title}>*\n> *Outcomes:*`;
+                                            }));
+                                            message.push(
+                                                (questions.map(question => {
+                                                    if (condition.outcomeTokenMarginalPrices) {
+                                                            return question.outcomes.map((outcome, i) =>
+                                                                `> \`${(parseFloat(condition.outcomeTokenMarginalPrices[i]) * 100 )
+                                                                    .toFixed(2)}%\` - ${outcome}`
+                                                            );
+                                                    } else {
+                                                            return question.outcomes.map(outcome => `> - ${outcome}`);
+                                                    }
+                                            })));
+                                        }
+                                        message.push(`> *Collateral*: <${urlExplorer}/token/${event.returnValues.collateralToken}|${tokenName}>`,
+                                            `> *Liquidity*: ${parseFloat(condition.scaledLiquidityParameter).toFixed(2)} ${tokenSymbol}`,
+                                            `> *Created by*: <${urlExplorer}/address/${transaction.from}|${truncate(transaction.from, 14)}>`);
+                                            // Send Slack notification
+                                        pushSlackArrayMessages(message);
+                                        console.log(event.returnValues.conditionIds[0] + ':\n' + message.join('\n') + '\n\n');
+                                    });
+                            });
                         });
-                    });
-            })();
-        });
-    })
+                })();
+            };
+        }
+    });
 }
 
 /**
- * Get `ConditionResolution` events from a `ConditionalTokens` contract.
+ * Watch `ConditionResolution` events from a `ConditionalTokens` contract.
  * @param  fromBlock
  * @param  toBlock
  * on the `returnValues` returns the following parameters:
@@ -84,7 +87,7 @@ const getFPMMCreationEvent = async (fromBlock, toBlock) => {
  * uint `outcomeSlotCount` the number of the outcomes reported.
  * uint[] `payoutNumerators` the oracle's answer reported.
  */
-const getResolvedMarketsEvents = async (fromBlock, toBlock) => {
+module.exports.watchResolvedMarketsEvent = async (fromBlock, toBlock) => {
     console.log(`Watching condition resolution events from ${fromBlock} to ${toBlock} block.`);
 
     conditionalTokensContract.getPastEvents('ConditionResolution', {
@@ -92,7 +95,9 @@ const getResolvedMarketsEvents = async (fromBlock, toBlock) => {
         fromBlock,
         toBlock,
     }, (error, events) => {
-        if (events) {
+        if (error) {
+            console.error(error);
+        } else {
             for(const event of events) {
                 (async () => {
                     const questions = await getQuestion(event.returnValues.questionId);
@@ -116,34 +121,6 @@ const getResolvedMarketsEvents = async (fromBlock, toBlock) => {
             }
         }
     });
-}
-
-/**
- * Watch `FixedProductMarketMakerCreation` events from a `FixedProductionMarketMakerFactory` contract.
- * @param fromBlock
- */
-module.exports.watchCreationMarketsEvent = async (fromBlock) => {
-    const lastBlock = await getLastBlockNumber();
-    if (fromBlock === 0) {
-        fromBlock = lastBlock - (blockReorgLimit * 2);
-    }
-    const toBlock = lastBlock - blockReorgLimit;
-    getFPMMCreationEvent(fromBlock, toBlock);
-    return (toBlock + 1);
-}
-
-/**
- * Watch `FixedProductMarketMakerCreation` events from a `FixedProductionMarketMakerFactory` contract.
- * @param fromBlock
- */
-module.exports.watchResolvedMarketsEvent = async (fromBlock) => {
-    const lastBlock = await getLastBlockNumber();
-    if (fromBlock === 0) {
-        fromBlock = lastBlock - 10000000000;
-    }
-    const toBlock = lastBlock - blockReorgLimit;
-    getResolvedMarketsEvents(fromBlock, toBlock);
-    return (toBlock + 1);
 }
 
 /**
