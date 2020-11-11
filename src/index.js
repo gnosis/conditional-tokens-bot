@@ -23,20 +23,19 @@ app.get('/', (req, res) => {
 app.listen(port, () => console.log(`Bot listening on port ${port}!`));
 
 // Start message
-const version = packageJson.version.startsWith('v') ? packageJson.version : `v${packageJson.version}`;
-const startMessage = `Conditional Tokens bot \`${version}\` was started.`;
+const startMessage = `Conditional Tokens bot \`${packageJson.version}\` was started.`;
 pushSlackMessage(startMessage);
 console.log(startMessage);
 
 console.log(`Configure to find events every ${jobTime} minutes`);
 let fromBlock = 0;
 const pastTimeInSeconds = jobTime * 60;
-schedule.scheduleJob(`*/10 */${jobTime} * * * *`, async () => {
+schedule.scheduleJob(`*/${jobTime} * * * *`, async () => {
     // Calculate from and to bock numbers
     const lastBlock = await getLastBlockNumber();
     const toBlock = lastBlock - blockReorgLimit;
     if (fromBlock === 0 || fromBlock > toBlock) {
-        fromBlock = toBlock - 752868;
+        fromBlock = toBlock;
     }
     // Watch creation market events
     await watchCreationMarketsEvent(fromBlock, toBlock);
