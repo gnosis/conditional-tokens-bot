@@ -29,7 +29,7 @@ module.exports.findLiquidityEvents = async (timestamp, pastTimeInSeconds) => {
                         const type = (liquidity.type === 'Add') ? 'added' : 'removed';
                         const amount = parseFloat(liquidity.collateralTokenAmount / 10**decimals).toFixed(2);
                         message.push(`> ${amount} <${urlExplorer}/token/${liquidity.collateralToken}|${tokenName}> of liquidity ${type} in "*<https://omen.eth.link/#/${liquidity.fpmm}|${escapeHTML(liquidity.title)}>*", total liquidity is now *${liquidity.scaledLiquidityParameter} ${tokenSymbol}*.`,
-                            `> *Created by*: <https://omen.eth.link/#/${liquidity.funder}|${truncate(liquidity.funder, 14)}>`,
+                            `> *Created by*: <${urlExplorer}/address/${liquidity.funder}|${truncate(liquidity.funder, 14)}>`,
                             `> *Transaction*: <${urlExplorer}/tx/${liquidity.transactionHash}|${truncate(liquidity.transactionHash, 14)}>`,
                         );
                         // Send Slack notification
