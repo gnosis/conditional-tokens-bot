@@ -31,7 +31,7 @@ module.exports.findTradeEvents = async (timestamp, pastTimeInSeconds) => {
         const outcome = trade.outcomes ? trade.outcomes[trade.outcomeIndex] : trade.outcomeIndex;
         message.push(`> ${amount} <${urlExplorer}/token/${trade.collateralToken}|${tokenName}> of *${outcome}* ${type} in "<https://omen.eth.link/#/${trade.fpmm}|${escapeHTML(trade.title)}>".`,
             `> Outcome odds: ${oldOdds}% --> ${odds}%`,
-            `> *Created by*: <https://omen.eth.link/#/${trade.creator}|${truncate(trade.creator, 14)}>`,
+            `> *Created by*: <${urlExplorer}/address/${trade.creator}|${truncate(trade.creator, 14)}>`,
             `> *Transaction*: <${urlExplorer}/tx/${trade.transactionHash}|${truncate(trade.transactionHash, 14)}>`,
         );
         // Send Slack notification
