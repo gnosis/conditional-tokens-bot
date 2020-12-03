@@ -4,7 +4,7 @@ const { getChainId, getUrlExplorer, web3 } = require('../utils/web3');
 const { getFixedProductionMarketMakerFactoryContract, getconditionalTokensContract } = require('../services/contractEvents');
 const { getTokenName, getTokenSymbol } = require('../services/contractERC20');
 const { getQuestion, getQuestionByOpeningTimestamp } = require('../services/getQuestion');
-const { getCondition } = require('../services/getCondition');
+const { getConditionAndQuestions } = require('../services/getCondition');
 
 const fixedProductMarketMakerFactoryContract = getFixedProductionMarketMakerFactoryContract(web3);
 const conditionalTokensContract = getconditionalTokensContract(web3);
@@ -33,45 +33,34 @@ module.exports.watchCreationMarketsEvent = async (fromBlock, toBlock) => {
                 (async () => {
                     const message = new Array('<!here>', '*New market created!* :tada:');
                     //TODO support conditional markets
-                    Promise.all([
-                        getCondition(event.returnValues.conditionIds[0]),
-                        web3.eth.getTransaction(event.transactionHash),
-                        getTokenName(web3, event.returnValues.collateralToken), 
-                        getTokenSymbol(web3, event.returnValues.collateralToken), 
-                    ])
-                        .then(([conditions, transaction, tokenName, tokenSymbol]) => {
-                            conditions.forEach(condition => {
-                                getQuestion(condition.questionId)
-                                    .then((questions) => {
-                                        if (questions.length == 0) {
-                                            console.error(`ERROR: Question for hex "${condition.questionId}" not found on contition ID ${event.returnValues.conditionIds[0]}`);
-                                        } else {
-                                            message.push(questions.map(question => {
-                                                return `> *<https://omen.eth.link/#/${condition.fixedProductMarketMakers}|${escapeHTML(question.title)}>*\n> *Outcomes:*`;
-                                            }));
-                                            for(const question of questions) {
-                                                if (condition.outcomeTokenMarginalPrices) {
-                                                    question.outcomes.map((outcome, i) =>
-                                                        message.push(
-                                                            `> \`${(parseFloat(condition.outcomeTokenMarginalPrices[i]) * 100)
-                                                            .toFixed(2)}%\` - ${outcome}`
-                                                        )
-                                                    );
-                                                } else {
-                                                    message.push(question.outcomes.map(outcome => message.push(`> - ${outcome}`)));
-                                                }
-                                            }
-                                        }
-                                        message.push(`> *Collateral*: <${urlExplorer}/token/${event.returnValues.collateralToken}|${tokenName}>`,
-                                            `> *Liquidity*: ${parseFloat(condition.scaledLiquidityParameter).toFixed(2)} ${tokenSymbol}`,
-                                            `> *Created by*: <${urlExplorer}/address/${transaction.from}|${truncate(transaction.from, 14)}>`,
-                                            `> *Transaction*: <${urlExplorer}/tx/${transaction.hash}|${truncate(transaction.hash, 14)}>`);
-                                            // Send Slack notification
-                                        pushSlackArrayMessages(message);
-                                        console.log(event.returnValues.conditionIds[0] + ':\n' + message.join('\n') + '\n\n');
-                                    });
-                            });
-                        });
+                    const conditions = await getConditionAndQuestions(event.returnValues.conditionIds[0]);
+                    const transaction = await web3.eth.getTransaction(event.transactionHash);
+                    const tokenName = await getTokenName(web3, event.returnValues.collateralToken);
+                    const tokenSymbol = await getTokenSymbol(web3, event.returnValues.collateralToken);
+                    for(const condition of conditions) {
+                        if (!condition.question) {
+                            console.error(`ERROR: Question for hex "${condition.questionId}" not found on contition ID ${event.returnValues.conditionIds[0]}`);
+                        } else {
+                            message.push(`> *<https://omen.eth.link/#/${condition.fixedProductMarketMakers}|${escapeHTML(condition.question.title)}>*\n> *Outcomes:*`);
+                            if (condition.outcomeTokenMarginalPrices) {
+                                condition.question.outcomes.map((outcome, i) =>
+                                    message.push(
+                                        `> \`${(parseFloat(condition.outcomeTokenMarginalPrices[i]) * 100)
+                                        .toFixed(2)}%\` - ${outcome}`
+                                    )
+                                );
+                            } else {
+                                message.push(condition.question.outcomes.map(outcome => message.push(`> - ${outcome}`)));
+                            }
+                        }
+                        message.push(`> *Collateral*: <${urlExplorer}/token/${event.returnValues.collateralToken}|${tokenName}>`,
+                            `> *Liquidity*: ${parseFloat(condition.scaledLiquidityParameter).toFixed(2)} ${tokenSymbol}`,
+                            `> *Created by*: <${urlExplorer}/address/${transaction.from}|${truncate(transaction.from, 14)}>`,
+                            `> *Transaction*: <${urlExplorer}/tx/${transaction.hash}|${truncate(transaction.hash, 14)}>`);
+                            // Send Slack notification
+                        pushSlackArrayMessages(message);
+                        console.log(event.returnValues.conditionIds[0] + ':\n' + message.join('\n') + '\n\n');
+                    }
                 })();
             };
         }
