@@ -49,17 +49,18 @@ module.exports.watchCreationMarketsEvent = async (fromBlock, toBlock) => {
                                             message.push(questions.map(question => {
                                                 return `> *<https://omen.eth.link/#/${condition.fixedProductMarketMakers}|${escapeHTML(question.title)}>*\n> *Outcomes:*`;
                                             }));
-                                            message.push(
-                                                (questions.map(question => {
-                                                    if (condition.outcomeTokenMarginalPrices) {
-                                                            return question.outcomes.map((outcome, i) =>
-                                                                `\`${(parseFloat(condition.outcomeTokenMarginalPrices[i]) * 100 )
-                                                                    .toFixed(2)}%\` - ${outcome}`
-                                                            );
-                                                    } else {
-                                                            return question.outcomes.map(outcome => `> - ${outcome}`);
-                                                    }
-                                            })));
+                                            for(const question of questions) {
+                                                if (condition.outcomeTokenMarginalPrices) {
+                                                    question.outcomes.map((outcome, i) =>
+                                                        message.push(
+                                                            `> \`${(parseFloat(condition.outcomeTokenMarginalPrices[i]) * 100)
+                                                            .toFixed(2)}%\` - ${outcome}`
+                                                        )
+                                                    );
+                                                } else {
+                                                    message.push(question.outcomes.map(outcome => message.push(`> - ${outcome}`)));
+                                                }
+                                            }
                                         }
                                         message.push(`> *Collateral*: <${urlExplorer}/token/${event.returnValues.collateralToken}|${tokenName}>`,
                                             `> *Liquidity*: ${parseFloat(condition.scaledLiquidityParameter).toFixed(2)} ${tokenSymbol}`,
