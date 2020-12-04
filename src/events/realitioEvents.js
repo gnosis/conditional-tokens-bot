@@ -1,5 +1,6 @@
-const { escapeHTML } = require('../utils/utils');
+const { truncateEnd, escapeHTML } = require('../utils/utils');
 const { pushSlackArrayMessages } = require('../utils/slack');
+const { pushTweetMessages } = require('../utils/twitter');
 const { web3 } = require('../utils/web3');
 const { getRealitioContract } = require('../services/contractEvents');
 const { getQuestion } = require('../services/getQuestion');
@@ -28,16 +29,21 @@ module.exports.watchLogNotifyOfArbitrationRequestArbitration = async (fromBlock,
             for(const event of events) {
                 (async () => {
                     const questions = await getQuestion(event.returnValues.question_id);
-                    questions.forEach(question => {
-                        const message = new Array(
+                    for(const question of questions) {
+                        const tweetMessage = `Market is in arbitration "${truncateEnd(escapeHTML(question.title), 100)}"\n` +
+                            `https://omen.eth.link/#/${question.indexedFixedProductMarketMakers}`;
+                        const slackMessage = new Array(
                             '> *Market is in arbitration*',
                             `> *Title:* <https://omen.eth.link/#/${question.indexedFixedProductMarketMakers}|${escapeHTML(question.title)}>`,
                         );
-                        pushSlackArrayMessages(message);
-                        console.log(question.id + ':\n' + message.join('\n') + '\n\n');
-                    });
+                        // Send Slack slackMessage
+                        await pushSlackArrayMessages(slackMessage);
+                        // Send Twitter notification
+                        await pushTweetMessages(tweetMessage);
+                        console.log(question.id + ':\n' + tweetMessage + '\n');
+                    }
                 })();
-            };
+            }
         }
     });
 }

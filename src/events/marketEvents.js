@@ -1,5 +1,6 @@
-const { truncate, escapeHTML } = require('../utils/utils');
+const { truncate, truncateEnd, escapeHTML } = require('../utils/utils');
 const { pushSlackArrayMessages } = require('../utils/slack');
+const { pushTweetMessages } = require('../utils/twitter');
 const { getChainId, getUrlExplorer, web3 } = require('../utils/web3');
 const { getFixedProductionMarketMakerFactoryContract, getconditionalTokensContract } = require('../services/contractEvents');
 const { getTokenName, getTokenSymbol } = require('../services/contractERC20');
@@ -11,8 +12,8 @@ const conditionalTokensContract = getconditionalTokensContract(web3);
 
 /**
  * Watch `FixedProductMarketMakerCreation` events from a `FixedProductionMarketMakerFactory` contract.
- * @param  fromBlock
- * @param  toBlock
+ * @param fromBlock
+ * @param toBlock
  * on the `returnValues` values like an array with the `conditionIds`,
  * and the `collateralToken`.
  * 
@@ -31,7 +32,7 @@ module.exports.watchCreationMarketsEvent = async (fromBlock, toBlock) => {
         } else {        
             for(const event of events) {
                 (async () => {
-                    const message = new Array('<!here>', '*New market created!* :tada:');
+                    const slackMessage = new Array('<!here>', '*New market created!* :tada:');
                     //TODO support conditional markets
                     const conditions = await getConditionAndQuestions(event.returnValues.conditionIds[0]);
                     const transaction = await web3.eth.getTransaction(event.transactionHash);
@@ -41,25 +42,32 @@ module.exports.watchCreationMarketsEvent = async (fromBlock, toBlock) => {
                         if (!condition.question) {
                             console.error(`ERROR: Question for hex "${condition.questionId}" not found on contition ID ${event.returnValues.conditionIds[0]}`);
                         } else {
-                            message.push(`> *<https://omen.eth.link/#/${condition.fixedProductMarketMakers}|${escapeHTML(condition.question.title)}>*\n> *Outcomes:*`);
+                            const tweetMessage = `New market created!\n` + 
+                                `"${truncateEnd(escapeHTML(condition.question.title), 100)}"\n` +
+                                `https://omen.eth.link/#/${condition.fixedProductMarketMakers}`;
+                            slackMessage.push(`> *<https://omen.eth.link/#/${condition.fixedProductMarketMakers}|${escapeHTML(condition.question.title)}>*\n> *Outcomes:*`);
                             if (condition.outcomeTokenMarginalPrices) {
                                 condition.question.outcomes.map((outcome, i) =>
-                                    message.push(
+                                    slackMessage.push(
                                         `> \`${(parseFloat(condition.outcomeTokenMarginalPrices[i]) * 100)
                                         .toFixed(2)}%\` - ${outcome}`
                                     )
                                 );
                             } else {
-                                message.push(condition.question.outcomes.map(outcome => message.push(`> - ${outcome}`)));
+                                slackMessage.push(condition.question.outcomes.map(outcome => slackMessage.push(`> - ${outcome}`)));
                             }
-                        }
-                        message.push(`> *Collateral*: <${urlExplorer}/token/${event.returnValues.collateralToken}|${tokenName}>`,
-                            `> *Liquidity*: ${parseFloat(condition.scaledLiquidityParameter).toFixed(2)} ${tokenSymbol}`,
-                            `> *Created by*: <${urlExplorer}/address/${transaction.from}|${truncate(transaction.from, 14)}>`,
-                            `> *Transaction*: <${urlExplorer}/tx/${transaction.hash}|${truncate(transaction.hash, 14)}>`);
+                            slackMessage.push(
+                                `> *Collateral*: <${urlExplorer}/token/${event.returnValues.collateralToken}|${tokenName}>`,
+                                `> *Liquidity*: ${parseFloat(condition.scaledLiquidityParameter).toFixed(2)} ${tokenSymbol}`,
+                                `> *Created by*: <${urlExplorer}/address/${transaction.from}|${truncate(transaction.from, 14)}>`,
+                                `> *Transaction*: <${urlExplorer}/tx/${transaction.hash}|${truncate(transaction.hash, 14)}>`
+                            );
                             // Send Slack notification
-                        pushSlackArrayMessages(message);
-                        console.log(event.returnValues.conditionIds[0] + ':\n' + message.join('\n') + '\n\n');
+                            await pushSlackArrayMessages(slackMessage);
+                            // Send Twitter notification
+                            await pushTweetMessages(tweetMessage);
+                            console.log(event.returnValues.conditionIds[0] + ':\n' + tweetMessage + '\n');
+                        }
                     }
                 })();
             };
@@ -69,8 +77,8 @@ module.exports.watchCreationMarketsEvent = async (fromBlock, toBlock) => {
 
 /**
  * Watch `ConditionResolution` events from a `ConditionalTokens` contract.
- * @param  fromBlock
- * @param  toBlock
+ * @param fromBlock
+ * @param toBlock
  * on the `returnValues` returns the following parameters:
  * bytes32 indexed `conditionId` the condition id of the market.
  * address indexed `oracle` the oracle that calls the function `reportPayouts`.
@@ -93,18 +101,23 @@ module.exports.watchResolvedMarketsEvent = async (fromBlock, toBlock) => {
                 (async () => {
                     const questions = await getQuestion(event.returnValues.questionId);
                     if (questions.length > 0) {
-                        const message = new Array(
+                        const tweetMessage = `Market resolved "${truncateEnd(escapeHTML(questions[0].title), 100)}"\n` + 
+                            `https://omen.eth.link/#/${questions[0].indexedFixedProductMarketMakers}`;
+                        const slackMessage = new Array(
                             '> *Market resolved*',
                             `> *Title:* <https://omen.eth.link/#/${questions[0].indexedFixedProductMarketMakers}|${escapeHTML(questions[0].title)}>`,
                             `> *Answer:*`,
                         );
                         event.returnValues.payoutNumerators.forEach((payout, index) => {
                             if(payout === '1') {
-                                message.push(`> - ${questions[0].outcomes[index]}`);
+                                slackMessage.push(`> - ${questions[0].outcomes[index]}`);
                             }
                         });
-                        pushSlackArrayMessages(message);
-                        console.log(event.returnValues.questionId + ':\n' + message.join('\n') + '\n\n');
+                        // Send Slack notification
+                        await pushSlackArrayMessages(slackMessage);
+                        // Send Twitter notification
+                        await pushTweetMessages(tweetMessage);
+                        console.log(event.returnValues.questionId + ':\n' + tweetMessage + '\n');                        
                     } else {
                         console.error(`ERROR: Question for hex "${event.returnValues.questionId}" not found on Omen subgraph.`);
                     }
@@ -115,8 +128,8 @@ module.exports.watchResolvedMarketsEvent = async (fromBlock, toBlock) => {
 }
 
 /**
- * Look for Question records where `openingTimestamp` field is between `timestamp`
- * and `timestamp-pastTimeInSeconds`.
+ * Look for Question records where `openingTimestamp`
+ * field is between `timestamp` and `timestamp-pastTimeInSeconds`.
  * @param timestamp timestamp in seconds to look for Question records.
  * @param pastTimeInSeconds number of seconds to filter the ready Market question.
  */
@@ -124,16 +137,20 @@ module.exports.findMarketReadyByQuestionOpeningTimestamp = async (timestamp, pas
     console.log(`Looking for markets ready to be resolved between ${timestamp-pastTimeInSeconds} and ${timestamp}`);
     const questions = await getQuestionByOpeningTimestamp(timestamp, pastTimeInSeconds, 20);
     const chainId = await getChainId();
-
-    questions.forEach(question => {
-        const message = new Array();
+    for(const question of questions) {
+        const slackMessage = new Array();
         if (chainId === 1) {
-            message.push('<!channel>');
+            slackMessage.push('<!channel>');
         }
-        message.push('> *Market ready for resolution*',
+        const tweetMessage = `Market ready for resolution "${truncateEnd(escapeHTML(question.title), 100)}"\n` + 
+            `https://omen.eth.link/#/${question.indexedFixedProductMarketMakers}`;
+        slackMessage.push('> *Market ready for resolution*',
             `> *Title:* <https://omen.eth.link/#/${question.indexedFixedProductMarketMakers}|${escapeHTML(question.title)}>`,
         );
-        pushSlackArrayMessages(message);
-        console.log(question.id + ':\n' + message.join('\n') + '\n\n');
-    });
+        // Send Slack notification
+        await pushSlackArrayMessages(slackMessage);
+        // Send Twitter notification
+        await pushTweetMessages(tweetMessage);
+        console.log(question.id + ':\n' + tweetMessage + '\n');
+    }
 }
