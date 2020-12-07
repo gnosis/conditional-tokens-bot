@@ -23,6 +23,15 @@ const truncate = (fullStr, strLen, separator) => {
            fullStr.substr(fullStr.length - backChars);
 };
 
+const truncateEnd = (fullStr, strLen) => {
+    const separator = '...';
+    if (fullStr.length > strLen - 3) {
+        return fullStr.substr(0, strLen) + separator;
+      } else {
+        return fullStr;
+      }
+}
+
 const escapeHTML = str => str.replace(/[<>]/g, 
   tag => ({
       '<': '&lt;',
@@ -31,5 +40,6 @@ const escapeHTML = str => str.replace(/[<>]/g,
 
 module.exports = {
     truncate,
+    truncateEnd,
     escapeHTML,
 }
