@@ -1,0 +1,26 @@
+if: (branch = develop) OR (branch = master) OR (type = pull_request) OR (tag IS present)
+sudo: required
+language: node_js
+node_js:
+  - stable
+services:
+  - docker
+before_install:
+  - sudo apt-get update && sudo apt-get install -y python3-pip python3-setuptools && pip3 install --upgrade --user awscli
+install:
+  - yarn -i
+script:
+  - echo "skipping tests"
+deploy:
+  - provider: script
+    script: bash scripts/deploy_docker.sh staging
+    on:
+      branch: master
+  - provider: script
+    script: bash scripts/deploy_docker.sh develop
+    on:
+      branch: develop
+  - provider: script
+    script: bash scripts/deploy_docker.sh $TRAVIS_TAG
+    on:
+      tags: true
