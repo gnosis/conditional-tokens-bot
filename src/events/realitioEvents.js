@@ -24,7 +24,7 @@ module.exports.watchLogNotifyOfArbitrationRequestArbitration = async (fromBlock,
         toBlock,
     }, (error, events) => {
         if (error) {
-            console.error(error);
+            console.error('Error:', error);
         } else {
             for(const event of events) {
                 (async () => {

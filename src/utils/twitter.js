@@ -31,14 +31,14 @@ if (twitterConsumerKey === undefined ||
 */
 module.exports.pushTweetMessages = (message) => {
   if ( message.length > 280 ) {
-    console.error("Twitter is longer than 280 chars");
+    console.error('Error:', 'Twitter is longer than 280 chars');
     return;
   }
   twit && twit.post('statuses/update',
     { status: message }, 
     (err, data, response) => {
       if (err !== undefined) {
-        console.error(err);
+        console.error('Error:', err);
       } else {
         console.log(`${data.created_at} Tweet sent  ${data.id} with text ${data.text}.`);
       }
