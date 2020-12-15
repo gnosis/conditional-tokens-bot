@@ -29,7 +29,7 @@ module.exports.watchCreationMarketsEvent = async (fromBlock, toBlock) => {
     }, (error, events) => {
         if (error) {
             console.error('Error:', error);
-        } else {        
+        } else {
             for(const event of events) {
                 (async () => {
                     const slackMessage = new Array('<!here>', '*New market created!* :tada:');
@@ -46,15 +46,15 @@ module.exports.watchCreationMarketsEvent = async (fromBlock, toBlock) => {
                                 `"${truncateEnd(escapeHTML(condition.question.title), 100)}"\n` +
                                 `https://omen.eth.link/#/${condition.fixedProductMarketMakers}`;
                             slackMessage.push(`> *<https://omen.eth.link/#/${condition.fixedProductMarketMakers}|${escapeHTML(condition.question.title)}>*\n> *Outcomes:*`);
-                            if (condition.outcomeTokenMarginalPrices) {
-                                condition.question.outcomes.map((outcome, i) =>
+                            for(let i=0; i < condition.question.outcomes.length; i++) {
+                                if (condition.outcomeTokenMarginalPrices) {
                                     slackMessage.push(
                                         `> \`${(parseFloat(condition.outcomeTokenMarginalPrices[i]) * 100)
-                                        .toFixed(2)}%\` - ${outcome}`
-                                    )
-                                );
-                            } else {
-                                slackMessage.push(condition.question.outcomes.map(outcome => slackMessage.push(`> - ${outcome}`)));
+                                        .toFixed(2)}%\` - ${condition.question.outcomes[i]}`
+                                    );
+                                } else {
+                                    slackMessage.push(`> - ${condition.question.outcomes[i]}`);
+                                }
                             }
                             slackMessage.push(
                                 `> *Collateral*: <${urlExplorer}/token/${event.returnValues.collateralToken}|${tokenName}>`,
@@ -66,7 +66,7 @@ module.exports.watchCreationMarketsEvent = async (fromBlock, toBlock) => {
                             await pushSlackArrayMessages(slackMessage);
                             // Send Twitter notification
                             await pushTweetMessages(tweetMessage);
-                            console.log(event.returnValues.conditionIds[0] + ':\n' + tweetMessage + '\n');
+                            console.log(event.returnValues.conditionIds[0] + ':\n' + slackMessage + '\n');
                         }
                     }
                 })();
