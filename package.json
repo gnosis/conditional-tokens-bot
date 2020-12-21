@@ -1,6 +1,6 @@
 {
   "name": "conditional-tokens-bot",
-  "version": "1.1.0",
+  "version": "1.1.2",
   "description": "Omen conditional tokens bot",
   "main": "index.js",
   "scripts": {
