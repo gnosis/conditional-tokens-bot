@@ -19,6 +19,10 @@ module.exports.findTradeEvents = async (timestamp, pastTimeInSeconds) => {
     const urlExplorer = await getUrlExplorer();
 
     for (const trade of trades) {
+        if (!trade.title) {
+            console.error('Error:', `Trade ${trade.id} from market ${trade.fpmm} has not title`);
+            return;
+        }
         const slackMessage = new Array();
         const type = (trade.type === 'Buy') ? 'purchased' : 'sold';
         const odds = parseFloat(trade.outcomeTokenMarginalPrice * 100).toFixed(2);

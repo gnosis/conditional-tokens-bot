@@ -28,8 +28,8 @@ module.exports.watchCreationMarketsEvent = async (fromBlock, toBlock) => {
         toBlock,
     }, (error, events) => {
         if (error) {
-            console.error(error);
-        } else {        
+            console.error('Error:', error);
+        } else {
             for(const event of events) {
                 (async () => {
                     const slackMessage = new Array('<!here>', '*New market created!* :tada:');
@@ -40,21 +40,21 @@ module.exports.watchCreationMarketsEvent = async (fromBlock, toBlock) => {
                     const tokenSymbol = await getTokenSymbol(web3, event.returnValues.collateralToken);
                     for(const condition of conditions) {
                         if (!condition.question) {
-                            console.error(`ERROR: Question for hex "${condition.questionId}" not found on contition ID ${event.returnValues.conditionIds[0]}`);
+                            console.error('Error:', `Question for hex "${condition.questionId}" not found on contition ID ${event.returnValues.conditionIds[0]}`);
                         } else {
                             const tweetMessage = `New market created!\n` + 
                                 `"${truncateEnd(escapeHTML(condition.question.title), 100)}"\n` +
                                 `https://omen.eth.link/#/${condition.fixedProductMarketMakers}`;
                             slackMessage.push(`> *<https://omen.eth.link/#/${condition.fixedProductMarketMakers}|${escapeHTML(condition.question.title)}>*\n> *Outcomes:*`);
-                            if (condition.outcomeTokenMarginalPrices) {
-                                condition.question.outcomes.map((outcome, i) =>
+                            for(let i=0; i < condition.question.outcomes.length; i++) {
+                                if (condition.outcomeTokenMarginalPrices) {
                                     slackMessage.push(
                                         `> \`${(parseFloat(condition.outcomeTokenMarginalPrices[i]) * 100)
-                                        .toFixed(2)}%\` - ${outcome}`
-                                    )
-                                );
-                            } else {
-                                slackMessage.push(condition.question.outcomes.map(outcome => slackMessage.push(`> - ${outcome}`)));
+                                        .toFixed(2)}%\` - ${condition.question.outcomes[i]}`
+                                    );
+                                } else {
+                                    slackMessage.push(`> - ${condition.question.outcomes[i]}`);
+                                }
                             }
                             slackMessage.push(
                                 `> *Collateral*: <${urlExplorer}/token/${event.returnValues.collateralToken}|${tokenName}>`,
@@ -66,7 +66,7 @@ module.exports.watchCreationMarketsEvent = async (fromBlock, toBlock) => {
                             await pushSlackArrayMessages(slackMessage);
                             // Send Twitter notification
                             await pushTweetMessages(tweetMessage);
-                            console.log(event.returnValues.conditionIds[0] + ':\n' + tweetMessage + '\n');
+                            console.log(event.returnValues.conditionIds[0] + ':\n' + slackMessage + '\n');
                         }
                     }
                 })();
@@ -95,7 +95,7 @@ module.exports.watchResolvedMarketsEvent = async (fromBlock, toBlock) => {
         toBlock,
     }, (error, events) => {
         if (error) {
-            console.error(error);
+            console.error('Error:', error);
         } else {
             for(const event of events) {
                 (async () => {
@@ -119,7 +119,7 @@ module.exports.watchResolvedMarketsEvent = async (fromBlock, toBlock) => {
                         await pushTweetMessages(tweetMessage);
                         console.log(event.returnValues.questionId + ':\n' + tweetMessage + '\n');                        
                     } else {
-                        console.error(`ERROR: Question for hex "${event.returnValues.questionId}" not found on Omen subgraph.`);
+                        console.error('Error:', `Question for hex "${event.returnValues.questionId}" not found on Omen subgraph.`);
                     }
                 })();
             }

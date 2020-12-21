@@ -1,3 +1,9 @@
+Version 1.1.2 (2020-12-21)
+==========================
+
+Fix `watchCreationMarketsEvent` condition.question.outcomes loop
+Add error text on log error messages
+
 Version 1.1.0 (2020-12-07)
 ==========================
 
