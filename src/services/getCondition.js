@@ -16,18 +16,19 @@ module.exports.getCondition = (conditionId) => {
   .then(res => res.json())
   .catch(error => console.error('Error:', error))
   .then(json => {
-    if(json.errors) {
+    if (json && json.errors) {
       throw new Error(json.errors.map(error => error.message));
+    } else if (json && json.data && json.data.conditions) {
+      return json.data.conditions && json.data.conditions.map(condition => 
+        ({
+          oracle: condition.oracle,
+          questionId: condition.questionId,
+          fixedProductMarketMakers: (condition.fixedProductMarketMakers.length > 0) ? condition.fixedProductMarketMakers[0].id : null,
+          outcomeTokenMarginalPrices: (condition.fixedProductMarketMakers.length > 0) ? condition.fixedProductMarketMakers[0].outcomeTokenMarginalPrices : null,
+          scaledLiquidityParameter: (condition.fixedProductMarketMakers.length > 0) ? condition.fixedProductMarketMakers[0].scaledLiquidityParameter : null,
+        })
+      );
     }
-    return json.data.conditions && json.data.conditions.map(condition => 
-      ({
-        oracle: condition.oracle,
-        questionId: condition.questionId,
-        fixedProductMarketMakers: (condition.fixedProductMarketMakers.length > 0) ? condition.fixedProductMarketMakers[0].id : null,
-        outcomeTokenMarginalPrices: (condition.fixedProductMarketMakers.length > 0) ? condition.fixedProductMarketMakers[0].outcomeTokenMarginalPrices : null,
-        scaledLiquidityParameter: (condition.fixedProductMarketMakers.length > 0) ? condition.fixedProductMarketMakers[0].scaledLiquidityParameter : null,
-      })
-    );
   });
 
   return promise;
@@ -50,19 +51,20 @@ module.exports.getConditionAndQuestions = (conditionId) => {
   .then(res => res.json())
   .catch(error => console.error('Error:', error))
   .then(json => {
-    if(json.errors) {
+    if (json && json.errors) {
       throw new Error(json.errors.map(error => error.message));
+    } else if (json && json.data && json.data.conditions) {
+      return json.data.conditions.map(condition => 
+        ({
+          oracle: condition.oracle,
+          questionId: condition.questionId,
+          fixedProductMarketMakers: (condition.fixedProductMarketMakers.length > 0) ? condition.fixedProductMarketMakers[0].id : null,
+          outcomeTokenMarginalPrices: (condition.fixedProductMarketMakers.length > 0) ? condition.fixedProductMarketMakers[0].outcomeTokenMarginalPrices : null,
+          scaledLiquidityParameter: (condition.fixedProductMarketMakers.length > 0) ? condition.fixedProductMarketMakers[0].scaledLiquidityParameter : null,
+          question: condition.question
+        })
+      );
     }
-    return json.data.conditions && json.data.conditions.map(condition => 
-      ({
-        oracle: condition.oracle,
-        questionId: condition.questionId,
-        fixedProductMarketMakers: (condition.fixedProductMarketMakers.length > 0) ? condition.fixedProductMarketMakers[0].id : null,
-        outcomeTokenMarginalPrices: (condition.fixedProductMarketMakers.length > 0) ? condition.fixedProductMarketMakers[0].outcomeTokenMarginalPrices : null,
-        scaledLiquidityParameter: (condition.fixedProductMarketMakers.length > 0) ? condition.fixedProductMarketMakers[0].scaledLiquidityParameter : null,
-        question: condition.question
-      })
-    );
   });
 
   return promise;
