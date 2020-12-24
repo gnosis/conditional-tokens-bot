@@ -21,29 +21,30 @@ module.exports.getTrade = (creationTimestamp, seconds, limit) => {
   }).then(res => res.json())
   .catch(error => console.error('Error:', error))
   .then(json => {
-    if(json.errors) {
+    if (json && json.errors) {
       throw new Error(json.errors.map(error => error.message));
+    } else if (json && json.data && json.data.fpmmTrades) {
+      return json.data.fpmmTrades && json.data.fpmmTrades.map(trade => 
+        ({
+          id: trade.id,
+          fpmm: trade.fpmm.id,
+          outcomes: trade.fpmm.outcomes,
+          title: trade.title,
+          collateralToken: trade.collateralToken,
+          collateralAmount: trade.collateralAmount,
+          outcomeTokenMarginalPrice: trade.outcomeTokenMarginalPrice,
+          oldOutcomeTokenMarginalPrice: trade.oldOutcomeTokenMarginalPrice,
+          collateralAmountUSD: trade.collateralAmountUSD,
+          feeAmount: trade.feeAmount,
+          type: trade.type,
+          creator: trade.creator.id,
+          creationTimestamp: trade.creationTimestamp,
+          outcomeIndex: trade.outcomeIndex,
+          outcomeTokensTraded: trade.outcomeTokensTraded,
+          transactionHash: trade.transactionHash,
+        })
+      );
     }
-    return json.data.fpmmTrades && json.data.fpmmTrades.map(trade => 
-      ({
-        id: trade.id,
-        fpmm: trade.fpmm.id,
-        outcomes: trade.fpmm.outcomes,
-        title: trade.title,
-        collateralToken: trade.collateralToken,
-        collateralAmount: trade.collateralAmount,
-        outcomeTokenMarginalPrice: trade.outcomeTokenMarginalPrice,
-        oldOutcomeTokenMarginalPrice: trade.oldOutcomeTokenMarginalPrice,
-        collateralAmountUSD: trade.collateralAmountUSD,
-        feeAmount: trade.feeAmount,
-        type: trade.type,
-        creator: trade.creator.id,
-        creationTimestamp: trade.creationTimestamp,
-        outcomeIndex: trade.outcomeIndex,
-        outcomeTokensTraded: trade.outcomeTokensTraded,
-        transactionHash: trade.transactionHash,
-      })
-    );
   });
 
   return promise;
@@ -69,10 +70,9 @@ module.exports.getOldTrade = (fpmmId, notTradeId, creationTimestamp) => {
   }).then(res => res.json())
   .catch(error => console.error('Error:', error))
   .then(json => {
-    if(json.errors) {
+    if (json && json.errors) {
       throw new Error(json.errors.map(error => error.message));
-    }
-    if(json.data.fpmmTrades && json.data.fpmmTrades.length > 0) {
+    } else if (json && json.data && json.data.fpmmTrades && json.data.fpmmTrades.length > 0) {
       const trade = json.data.fpmmTrades[0];
       return {
         id: trade.id,
