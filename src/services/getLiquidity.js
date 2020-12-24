@@ -20,27 +20,28 @@ module.exports.getLiquidity = (creationTimestamp, seconds, limit) => {
   }).then(res => res.json())
   .catch(error => console.error('Error:', error))
   .then(json => {
-    if(json.errors) {
+    if (json && json.errors) {
       throw new Error(json.errors.map(error => error.message));
-    }    
-    return json.data && json.data.fpmmLiquidities && json.data.fpmmLiquidities.map(liquidity => 
-      ({
-        id: liquidity.id,
-        fpmm: liquidity.fpmm.id,
-        scaledLiquidityParameter: liquidity.fpmm.scaledLiquidityParameter,
-        collateralToken: liquidity.fpmm.collateralToken,
-        title: liquidity.fpmm.title,
-        funder: liquidity.funder.id,
-        type: liquidity.type,
-        outcomeTokenAmounts: liquidity.outcomeTokenAmounts,
-        collateralTokenAmount: liquidity.collateralTokenAmount,
-        additionalLiquidityParameter: liquidity.additionalLiquidityParameter,
-        sharesAmount: liquidity.sharesAmount,
-        collateralRemovedFromFeePool: liquidity.collateralRemovedFromFeePool,
-        creationTimestamp: liquidity.creationTimestamp,
-        transactionHash: liquidity.transactionHash,
-      })
-    );
+    } else if (json && json.data && json.data.fpmmLiquidities) {
+      return json.data.fpmmLiquidities.map(liquidity => 
+        ({
+          id: liquidity.id,
+          fpmm: liquidity.fpmm.id,
+          scaledLiquidityParameter: liquidity.fpmm.scaledLiquidityParameter,
+          collateralToken: liquidity.fpmm.collateralToken,
+          title: liquidity.fpmm.title,
+          funder: liquidity.funder.id,
+          type: liquidity.type,
+          outcomeTokenAmounts: liquidity.outcomeTokenAmounts,
+          collateralTokenAmount: liquidity.collateralTokenAmount,
+          additionalLiquidityParameter: liquidity.additionalLiquidityParameter,
+          sharesAmount: liquidity.sharesAmount,
+          collateralRemovedFromFeePool: liquidity.collateralRemovedFromFeePool,
+          creationTimestamp: liquidity.creationTimestamp,
+          transactionHash: liquidity.transactionHash,
+        })
+      );
+    }
   });
 
   return promise;

@@ -16,17 +16,18 @@ module.exports.getQuestion = (questionId) => {
     .then(res => res.json())
     .catch(error => console.error('Error:', error))
     .then(json => {
-      if(json.errors) {
+      if (json && json.errors) {
         throw new Error(json.errors.map(error => error.message));
+      } else if (json && json.data && json.data.questions) {
+        return json.data.questions.map(question =>
+          ({
+            id: question.id,
+            title: question.title,
+            outcomes: question.outcomes,
+            indexedFixedProductMarketMakers: (question.indexedFixedProductMarketMakers.length > 0) ? question.indexedFixedProductMarketMakers[0].id : null,
+          })
+        );
       }
-      return json.data.questions && json.data.questions.map(question =>
-        ({
-          id: question.id,
-          title: question.title,
-          outcomes: question.outcomes,
-          indexedFixedProductMarketMakers: (question.indexedFixedProductMarketMakers.length > 0) ? question.indexedFixedProductMarketMakers[0].id : null,
-        })
-      );
     });
 }
 
@@ -52,17 +53,18 @@ module.exports.getQuestionByOpeningTimestamp = (openingTimestamp, seconds, limit
     .then(res => res.json())
     .catch(error => console.error('Error:', error))
     .then(json => {
-      if(json.errors) {
+      if (json && json.errors) {
         throw new Error(json.errors.map(error => error.message));
+      } else if (json && json.data && json.data.questions) {
+        return json.data.questions.map(question =>
+          ({
+            id: question.id,
+            title: question.title,
+            outcomes: question.outcomes,
+            indexedFixedProductMarketMakers: (question.indexedFixedProductMarketMakers.length > 0) ? question.indexedFixedProductMarketMakers[0].id : null,
+          })
+        );
       }
-      return json.data.questions && json.data.questions.map(question =>
-        ({
-          id: question.id,
-          title: question.title,
-          outcomes: question.outcomes,
-          indexedFixedProductMarketMakers: (question.indexedFixedProductMarketMakers.length > 0) ? question.indexedFixedProductMarketMakers[0].id : null,
-        })
-      );
     });
 }
 
@@ -87,14 +89,15 @@ module.exports.findQuestionByIsPendingArbitration = (openingTimestamp, limit) =>
     .then(json => {
       if(json.errors) {
         throw new Error(json.errors.map(error => error.message));
+      } else if (json && json.data && json.data.questions) {
+        return json.data.questions.map(question =>
+          ({
+            id: question.id,
+            title: question.title,
+            outcomes: question.outcomes,
+            indexedFixedProductMarketMakers: (question.indexedFixedProductMarketMakers.length > 0) ? question.indexedFixedProductMarketMakers[0].id : null,
+          })
+        );
       }
-      return json.data.questions && json.data.questions.map(question =>
-        ({
-          id: question.id,
-          title: question.title,
-          outcomes: question.outcomes,
-          indexedFixedProductMarketMakers: (question.indexedFixedProductMarketMakers.length > 0) ? question.indexedFixedProductMarketMakers[0].id : null,
-        })
-      );
     });
 }
