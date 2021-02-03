@@ -1,3 +1,10 @@
+Version 1.1.4 (2020-02-03)
+==========================
+
+- Add check netId for health check
+- Fix trade amount decimals
+- Update package dependencies
+
 Version 1.1.3 (2020-12-24)
 ==========================
 
