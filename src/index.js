@@ -4,7 +4,7 @@ const schedule = require('node-schedule');
 const packageJson = require('../package.json');
 const { port, jobTime, blockReorgLimit, averageBlockTime } = require('./config');
 const { pushSlackMessage } = require('./utils/slack');
-const { getLastBlockNumber } = require('./utils/web3');
+const { getChainId, getLastBlockNumber } = require('./utils/web3');
 const { watchCreationMarketsEvent, 
     watchResolvedMarketsEvent, 
     findMarketReadyByQuestionOpeningTimestamp } = require('./events/marketEvents');
@@ -17,8 +17,13 @@ const app = express();
 
 app.use(express.json());
 
-app.get('/', (req, res) => {
-    res.status(200).send('CT bot is running!')
+app.get('/', async (req, res) => {
+    try {
+        const chainId = await getChainId();
+        res.status(200).send(`CT bot is running on netId ${chainId}.`);
+    } catch(e) {
+        res.status(400).send(e.message);
+    }
 })
 app.listen(port, () => console.log(`Bot listening on port ${port}!`));
 
